@@ -132,8 +132,8 @@ class Person extends Model
 
     public static function validationRules(bool $isUpdate = false, ?int $id = null): array
     {
-        $emailRule     = 'nullable|email:rfc,dns|max:191|unique:persons,email';
-        $waenEmailRule = 'nullable|email:rfc,dns|max:191|unique:persons,waen_email';
+        $emailRule     = 'nullable|email:rfc|max:191|unique:persons,email';
+        $waenEmailRule = 'nullable|email:rfc|max:191|unique:persons,waen_email';
 
         if ($isUpdate && $id) {
             $emailRule     .= ',' . $id;

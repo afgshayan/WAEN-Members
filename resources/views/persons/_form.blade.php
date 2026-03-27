@@ -98,6 +98,17 @@
                accept="image/jpeg,image/png,image/webp">
         <small class="text-muted">JPG, PNG or WebP. Max 5 MB.</small>
         @error('headshot') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div id="headshot-preview" class="mt-2 d-none">
+            <div class="d-flex align-items-center gap-2">
+                <img id="headshot-preview-img" src="" alt="Preview"
+                     style="width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">
+                <div style="min-width:0;">
+                    <div id="headshot-preview-name" class="fw-semibold text-truncate" style="font-size:.8rem; max-width:200px;"></div>
+                    <div id="headshot-preview-size" class="text-muted" style="font-size:.72rem;"></div>
+                </div>
+                <i class="bi bi-check-circle-fill text-success" style="font-size:1.1rem;"></i>
+            </div>
+        </div>
     </div>
 
     {{-- ── Contact Information ── --}}
@@ -333,6 +344,19 @@
                accept=".pdf,.doc,.docx">
         <small class="text-muted">PDF, DOC or DOCX. Max 10 MB.</small>
         @error('cv_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div id="cv-preview" class="mt-2 d-none">
+            <div class="d-flex align-items-center gap-2">
+                <div style="width:44px; height:44px; background:#f1f5f9; border-radius:10px;
+                            display:flex; align-items:center; justify-content:center;">
+                    <i class="bi bi-file-earmark-pdf-fill" style="font-size:1.4rem; color:#ef4444;" id="cv-preview-icon"></i>
+                </div>
+                <div style="min-width:0;">
+                    <div id="cv-preview-name" class="fw-semibold text-truncate" style="font-size:.8rem; max-width:200px;"></div>
+                    <div id="cv-preview-size" class="text-muted" style="font-size:.72rem;"></div>
+                </div>
+                <i class="bi bi-check-circle-fill text-success" style="font-size:1.1rem;"></i>
+            </div>
+        </div>
     </div>
 
     {{-- Areas of Expertise --}}
@@ -356,3 +380,60 @@
     </div>
 
 </div>
+
+<script>
+(function() {
+    function formatSize(bytes) {
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return bytes + ' B';
+    }
+
+    var headshot = document.getElementById('headshot');
+    if (headshot) {
+        headshot.addEventListener('change', function() {
+            var preview = document.getElementById('headshot-preview');
+            var img = document.getElementById('headshot-preview-img');
+            var nameEl = document.getElementById('headshot-preview-name');
+            var sizeEl = document.getElementById('headshot-preview-size');
+            if (this.files && this.files[0]) {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) { img.src = e.target.result; };
+                reader.readAsDataURL(file);
+                nameEl.textContent = file.name;
+                sizeEl.textContent = formatSize(file.size);
+                preview.classList.remove('d-none');
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+    }
+
+    var cvFile = document.getElementById('cv_file');
+    if (cvFile) {
+        cvFile.addEventListener('change', function() {
+            var preview = document.getElementById('cv-preview');
+            var nameEl = document.getElementById('cv-preview-name');
+            var sizeEl = document.getElementById('cv-preview-size');
+            var iconEl = document.getElementById('cv-preview-icon');
+            if (this.files && this.files[0]) {
+                var file = this.files[0];
+                nameEl.textContent = file.name;
+                sizeEl.textContent = formatSize(file.size);
+                var ext = file.name.split('.').pop().toLowerCase();
+                if (ext === 'pdf') {
+                    iconEl.className = 'bi bi-file-earmark-pdf-fill';
+                    iconEl.style.color = '#ef4444';
+                } else {
+                    iconEl.className = 'bi bi-file-earmark-word-fill';
+                    iconEl.style.color = '#2563eb';
+                }
+                preview.classList.remove('d-none');
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+    }
+})();
+</script>
