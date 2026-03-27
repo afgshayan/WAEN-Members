@@ -27,13 +27,18 @@ Options -Indexes
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Block direct access to private storage areas
+    RewriteRule ^storage/app/private - [F,L]
+    RewriteRule ^storage/framework - [F,L]
+    RewriteRule ^storage/logs - [F,L]
+
     # Serve real files and directories directly (css, js, images inside public/)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Serve uploaded files from public/storage/ symlink
-    RewriteRule ^storage/(.+)$ public/storage/$1 [L]
+    # Serve uploaded files directly from storage (no symlink needed)
+    RewriteRule ^storage/(.+)$ storage/app/public/$1 [L]
 
     # Everything else goes to public/index.php (Laravel front controller)
     RewriteRule ^ public/index.php [L]
