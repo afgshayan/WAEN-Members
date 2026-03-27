@@ -1,0 +1,93 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PersonController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\UpdateController;
+use App\Http\Controllers\UserController;
+
+// ---------------------------------------------------------------------------
+// Resolve login slug from settings (gracefully handles unconfigured DB)
+// ---------------------------------------------------------------------------
+$loginSlug = 'login';
+try {
+    $slug = \App\Models\Setting::get('login_slug', 'login');
+    if ($slug && preg_match('/^[a-zA-Z0-9\-_]+$/', $slug)) {
+        $loginSlug = $slug;
+    }
+} catch (\Throwable) {}
+
+// ---------------------------------------------------------------------------
+// Root URL — accessible to everyone
+// Guests: show 403/restricted page  |  Auth users: redirect to dashboard
+// ---------------------------------------------------------------------------
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('persons.index');
+    }
+    $title   = 'Access Restricted';
+    $message = 'You do not have permission to access this area.';
+    try {
+        $title   = \App\Models\Setting::get('root_access_title',   $title)   ?: $title;
+        $message = \App\Models\Setting::get('root_access_message', $message) ?: $message;
+    } catch (\Throwable) {}
+    return response(view('errors.403', compact('title', 'message')), 403);
+});
+
+// ---------------------------------------------------------------------------
+// Authentication routes (guests only)
+// ---------------------------------------------------------------------------
+Route::middleware('guest')->group(function () use ($loginSlug) {
+    Route::get('/'  . $loginSlug, [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/' . $loginSlug, [AuthController::class, 'login'])->name('login.post');
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth');
+
+// ---------------------------------------------------------------------------
+// Protected routes — require authentication
+// ---------------------------------------------------------------------------
+Route::middleware('auth')->group(function () {
+
+    // ── Members (main dashboard) ─────────────────────────────────────────────
+    // URL prefix is "dashboard" instead of "persons"; route names stay persons.*
+
+    // Bulk-destroy must be declared BEFORE resource to avoid {person} wildcard
+    Route::post('dashboard/bulk-destroy', [PersonController::class, 'bulkDestroy'])
+        ->name('persons.bulk-destroy');
+
+    // Import / export / sample CSV
+    Route::get('dashboard-import',  [PersonController::class, 'importForm'])->name('persons.import.form');
+    Route::post('dashboard-import', [PersonController::class, 'importCsv'])->name('persons.import');
+    Route::get('dashboard-export',  [PersonController::class, 'exportForm'])->name('persons.export');
+    Route::post('dashboard-export', [PersonController::class, 'exportCsv'])->name('persons.export.download');
+    Route::get('dashboard-sample',  [PersonController::class, 'sampleCsv'])->name('persons.sample');
+
+    // Resource CRUD — bound to /dashboard, parameter kept as {person}
+    Route::resource('dashboard', PersonController::class)
+        ->parameters(['dashboard' => 'person'])
+        ->names([
+            'index'   => 'persons.index',
+            'create'  => 'persons.create',
+            'store'   => 'persons.store',
+            'show'    => 'persons.show',
+            'edit'    => 'persons.edit',
+            'update'  => 'persons.update',
+            'destroy' => 'persons.destroy',
+        ]);
+
+    // ── Settings (admin only) ────────────────────────────────────────────────
+    Route::get('settings',               [SettingController::class, 'index'])->name('settings.index');
+    Route::put('settings',               [SettingController::class, 'update'])->name('settings.update');
+    Route::post('settings/test-captcha', [SettingController::class, 'testCaptcha'])->name('settings.test-captcha');
+
+    // ── User management (admin only) ─────────────────────────────────────────
+    Route::resource('users', UserController::class)->except(['show']);
+    // ── Update system (admin only) ────────────────────────────────────────────
+    Route::get ('update',       [UpdateController::class, 'index'])->name('update.index');
+    Route::post('update/check', [UpdateController::class, 'check'])->name('update.check');
+    Route::post('update/run',   [UpdateController::class, 'doUpdate'])->name('update.run');});
+

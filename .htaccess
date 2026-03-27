@@ -1,0 +1,35 @@
+Options -Indexes
+
+# Prevent access to sensitive files
+<FilesMatch "\.(env|log|lock|json|md|gitignore|editorconfig|ini|sh|bat)$">
+    Require all denied
+</FilesMatch>
+
+# Block direct access to artisan / composer
+<FilesMatch "^(artisan|composer\.phar)$">
+    Require all denied
+</FilesMatch>
+
+# Route all requests through public/ so /public never appears in the URL
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pass Authorization header through
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Serve real files and directories directly (css, js, images inside public/)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Check if the file exists inside public/ and serve it directly (static assets)
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Everything else goes to public/index.php (Laravel front controller)
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
+DirectoryIndex index.php
