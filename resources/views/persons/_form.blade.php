@@ -52,6 +52,32 @@
         @error('occupation') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
+    {{-- Education --}}
+    <div class="col-12 col-md-3">
+        <label for="education" class="form-label fw-semibold" style="font-size:.875rem;">Education</label>
+        <select name="education" id="education"
+                class="form-select @error('education') is-invalid @enderror">
+            <option value="">— Select —</option>
+            @foreach(['High School','Associate\'s Degree','Bachelor\'s Degree','Master\'s Degree','PhD / Doctorate','Professional Degree','Other'] as $edu)
+                <option value="{{ $edu }}" {{ old('education', $person->education ?? '') === $edu ? 'selected' : '' }}>{{ $edu }}</option>
+            @endforeach
+        </select>
+        @error('education') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    {{-- Gender --}}
+    <div class="col-12 col-md-3">
+        <label for="gender" class="form-label fw-semibold" style="font-size:.875rem;">Gender</label>
+        <select name="gender" id="gender"
+                class="form-select @error('gender') is-invalid @enderror">
+            <option value="">— Select —</option>
+            @foreach(['Male','Female','Other'] as $g)
+                <option value="{{ $g }}" {{ old('gender', $person->gender ?? '') === $g ? 'selected' : '' }}>{{ $g }}</option>
+            @endforeach
+        </select>
+        @error('gender') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
     {{-- Headshot --}}
     <div class="col-12 col-md-6">
         <label for="headshot" class="form-label fw-semibold" style="font-size:.875rem;">

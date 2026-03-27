@@ -45,6 +45,7 @@
                                 <code>biography</code>, <code>areas_of_expertise</code>, <code>proposed_initiatives</code>
                             </li>
                             <li><code>date_of_birth</code> format: <code>YYYY-MM-DD</code></li>
+                            <li><code>gender</code> accepted values: <code>Male</code>, <code>Female</code>, <code>Other</code></li>
                             <li>Encoding: <strong>UTF-8</strong> (with or without BOM)</li>
                             <li>Maximum file size: <strong>50 MB</strong></li>
                             <li>Duplicate email addresses are automatically skipped.</li>
@@ -91,9 +92,9 @@
                 <span>Sample CSV Template</span>
             </div>
             <div class="card-body p-4">
-                <pre class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:.8rem; color:#374151; border:1px solid #e5e7eb; overflow-x:auto;">first_name,last_name,date_of_birth,occupation,email,waen_email,whatsapp,phone,street_address,apartment,city,state_province,zip_code,country,facebook,instagram,linkedin,twitter,biography,areas_of_expertise,proposed_initiatives
-Ahmad,Rahimi,1990-05-15,Software Engineer at TechCorp,ahmad@example.com,ahmad@waen.org,+93700123456,+1234567890,123 Main St,Apt 4B,Kabul,Kabul,1001,Afghanistan,,,,,Experienced engineer...,Machine Learning,AI for Education
-Sara,Karimi,1988-11-22,Professor at University,sara@example.com,,+93799654321,,456 Oak Ave,,Herat,Herat,2001,Afghanistan,,,,,,Public Health,Health Education</pre>
+                <pre class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:.8rem; color:#374151; border:1px solid #e5e7eb; overflow-x:auto;">first_name,last_name,date_of_birth,occupation,email,waen_email,whatsapp,phone,street_address,apartment,city,state_province,zip_code,country,education,gender,facebook,instagram,linkedin,twitter,biography,areas_of_expertise,proposed_initiatives
+Ahmad,Rahimi,1990-05-15,Software Engineer at TechCorp,ahmad@example.com,ahmad@waen.org,+93700123456,+1234567890,123 Main St,Apt 4B,Kabul,Kabul,1001,Afghanistan,Master's Degree,Male,,,,,Experienced engineer...,Machine Learning,AI for Education
+Sara,Karimi,1988-11-22,Professor at University,sara@example.com,,+93799654321,,456 Oak Ave,,Herat,Herat,2001,Afghanistan,PhD,Female,,,,,,Public Health,Health Education</pre>
                 <small class="text-muted" style="font-size:.78rem;">
                     <i class="bi bi-lightbulb me-1 text-warning"></i>
                     All columns except <em>first_name</em> are optional.

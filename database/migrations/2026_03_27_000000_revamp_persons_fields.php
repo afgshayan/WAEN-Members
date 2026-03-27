@@ -35,9 +35,8 @@ return new class extends Migration
 
             // Drop columns that are no longer needed
             $table->dropIndex('persons_province_index');
-            $table->dropIndex('persons_education_index');
             $table->dropIndex('persons_event_name_index');
-            $table->dropColumn(['province', 'education', 'gender', 'event_name']);
+            $table->dropColumn(['province', 'event_name']);
         });
     }
 
@@ -45,12 +44,9 @@ return new class extends Migration
     {
         Schema::table('persons', function (Blueprint $table) {
             $table->string('province', 100)->nullable();
-            $table->string('education', 100)->nullable();
-            $table->string('gender', 20)->nullable();
             $table->string('event_name', 150)->nullable();
 
             $table->index('province', 'persons_province_index');
-            $table->index('education', 'persons_education_index');
             $table->index('event_name', 'persons_event_name_index');
 
             $table->dropColumn([

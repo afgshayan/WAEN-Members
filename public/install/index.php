@@ -314,6 +314,8 @@ function createTables(PDO $pdo): void
             `state_province` VARCHAR(100) NULL DEFAULT NULL,
             `zip_code` VARCHAR(20) NULL DEFAULT NULL,
             `country` VARCHAR(100) NULL DEFAULT NULL,
+            `education` VARCHAR(100) NULL DEFAULT NULL,
+            `gender` VARCHAR(20) NULL DEFAULT NULL,
             `facebook` VARCHAR(255) NULL DEFAULT NULL,
             `instagram` VARCHAR(255) NULL DEFAULT NULL,
             `linkedin` VARCHAR(255) NULL DEFAULT NULL,
@@ -333,6 +335,7 @@ function createTables(PDO $pdo): void
             KEY `persons_city_index` (`city`),
             KEY `persons_state_province_index` (`state_province`),
             KEY `persons_country_index` (`country`),
+            KEY `persons_education_index` (`education`),
             KEY `persons_occupation_index` (`occupation`),
             KEY `persons_created_at_index` (`created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",

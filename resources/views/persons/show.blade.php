@@ -258,8 +258,18 @@
                             <div class="info-label">Occupation</div>
                             <div class="info-value">{{ $person->occupation ?: 'â€”' }}</div>
                         </div>
+                    </div>                    <div class="col-6 col-md-3">
+                        <div class="info-card">
+                            <div class="info-label">Education</div>
+                            <div class="info-value">{{ $person->education ?: '—' }}</div>
+                        </div>
                     </div>
-                </div>
+                    <div class="col-6 col-md-3">
+                        <div class="info-card">
+                            <div class="info-label">Gender</div>
+                            <div class="info-value">{{ $person->gender ?: '—' }}</div>
+                        </div>
+                    </div>                </div>
 
                 {{-- â”€â”€ Address â”€â”€ --}}
                 <div class="section-title"><i class="bi bi-geo-alt me-1"></i> Address</div>

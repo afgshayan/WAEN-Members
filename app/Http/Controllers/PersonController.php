@@ -288,6 +288,8 @@ class PersonController extends Controller
             'instagram'            => ['instagram', 'instagram_url'],
             'linkedin'             => ['linkedin', 'linkedin_url'],
             'twitter'              => ['twitter', 'x', 'twitter_url'],
+            'education'            => ['education', 'تحصیلات'],
+            'gender'               => ['gender', 'جنسیت'],
             'biography'            => ['biography', 'bio', 'Ø¨ÛŒÙˆÚ¯Ø±Ø§ÙÛŒ'],
             'areas_of_expertise'   => ['areas_of_expertise', 'expertise', 'ØªØ®ØµØµ'],
             'proposed_initiatives' => ['proposed_initiatives', 'initiatives', 'Ø§Ø¨ØªÚ©Ø§Ø±Ø§Øª'],
@@ -343,6 +345,8 @@ class PersonController extends Controller
                 'instagram'            => $g('instagram', 255),
                 'linkedin'             => $g('linkedin', 255),
                 'twitter'              => $g('twitter', 255),
+                'education'            => $g('education'),
+                'gender'               => $g('gender', 20),
                 'biography'            => isset($colIndex['biography'])
                     ? substr(trim($row[$colIndex['biography']] ?? ''), 0, 5000) : null,
                 'areas_of_expertise'   => isset($colIndex['areas_of_expertise'])
@@ -450,6 +454,7 @@ class PersonController extends Controller
                 'ID', 'First Name', 'Last Name', 'Date of Birth', 'Occupation',
                 'Email', 'WAEN Email', 'WhatsApp', 'Phone',
                 'Street Address', 'Apartment', 'City', 'State/Province', 'ZIP Code', 'Country',
+                'Education', 'Gender',
                 'Facebook', 'Instagram', 'LinkedIn', 'X (Twitter)',
                 'Biography', 'Areas of Expertise', 'Proposed Initiatives',
             ]);
@@ -467,6 +472,7 @@ class PersonController extends Controller
                             $p->date_of_birth?->format('Y-m-d'), $p->occupation,
                             $p->email, $p->waen_email, $p->whatsapp, $p->phone,
                             $p->street_address, $p->apartment, $p->city, $p->state_province, $p->zip_code, $p->country,
+                            $p->education, $p->gender,
                             $p->facebook, $p->instagram, $p->linkedin, $p->twitter,
                             $p->biography, $p->areas_of_expertise, $p->proposed_initiatives,
                         ]);
@@ -492,9 +498,9 @@ class PersonController extends Controller
         ];
 
         $rows = [
-            ['first_name', 'last_name', 'date_of_birth', 'occupation', 'email', 'waen_email', 'whatsapp', 'phone', 'street_address', 'apartment', 'city', 'state_province', 'zip_code', 'country', 'facebook', 'instagram', 'linkedin', 'twitter', 'biography', 'areas_of_expertise', 'proposed_initiatives'],
-            ['Ahmad', 'Rahimi', '1990-05-15', 'Software Engineer at TechCorp', 'ahmad@example.com', 'ahmad@waen.org', '+93700123456', '+1234567890', '123 Main St', 'Apt 4B', 'Kabul', 'Kabul', '1001', 'Afghanistan', 'https://facebook.com/ahmad', 'https://instagram.com/ahmad', 'https://linkedin.com/in/ahmad', 'https://x.com/ahmad', 'Experienced engineer...', 'Machine Learning, Data Science', 'AI for Education'],
-            ['Sara', 'Karimi', '1988-11-22', 'Professor at University', 'sara@example.com', '', '+93799654321', '', '456 Oak Ave', '', 'Herat', 'Herat', '2001', 'Afghanistan', '', '', 'https://linkedin.com/in/sara', '', 'Academic researcher...', 'Public Health, Policy', 'Health Education Programs'],
+            ['first_name', 'last_name', 'date_of_birth', 'occupation', 'email', 'waen_email', 'whatsapp', 'phone', 'street_address', 'apartment', 'city', 'state_province', 'zip_code', 'country', 'education', 'gender', 'facebook', 'instagram', 'linkedin', 'twitter', 'biography', 'areas_of_expertise', 'proposed_initiatives'],
+            ['Ahmad', 'Rahimi', '1990-05-15', 'Software Engineer at TechCorp', 'ahmad@example.com', 'ahmad@waen.org', '+93700123456', '+1234567890', '123 Main St', 'Apt 4B', 'Kabul', 'Kabul', '1001', 'Afghanistan', 'Master\'s Degree', 'Male', 'https://facebook.com/ahmad', 'https://instagram.com/ahmad', 'https://linkedin.com/in/ahmad', 'https://x.com/ahmad', 'Experienced engineer...', 'Machine Learning, Data Science', 'AI for Education'],
+            ['Sara', 'Karimi', '1988-11-22', 'Professor at University', 'sara@example.com', '', '+93799654321', '', '456 Oak Ave', '', 'Herat', 'Herat', '2001', 'Afghanistan', 'PhD', 'Female', '', '', 'https://linkedin.com/in/sara', '', 'Academic researcher...', 'Public Health, Policy', 'Health Education Programs'],
         ];
 
         $callback = function () use ($rows) {
