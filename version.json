@@ -1,4 +1,4 @@
 {
-    "version": "1.1.0",
-    "changelog": "Revamped member fields with new comprehensive profile, file uploads (headshot/CV), social media links, and beautiful profile view"
+    "version": "1.2.0",
+    "changelog": "Added WordPress-style Media Library with drag-drop upload, grid/list view, detail panel, bulk operations, and file management"
 }

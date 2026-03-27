@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 
@@ -78,6 +79,15 @@ Route::middleware('auth')->group(function () {
             'update'  => 'persons.update',
             'destroy' => 'persons.destroy',
         ]);
+
+    // ── Media Library ────────────────────────────────────────────────────────
+    Route::get ('media',               [MediaController::class, 'index'])->name('media.index');
+    Route::post('media/upload',        [MediaController::class, 'upload'])->name('media.upload');
+    Route::post('media/bulk-destroy',  [MediaController::class, 'bulkDestroy'])->name('media.bulk-destroy');
+    Route::get ('media/{medium}',      [MediaController::class, 'show'])->name('media.show');
+    Route::put ('media/{medium}',      [MediaController::class, 'update'])->name('media.update');
+    Route::delete('media/{medium}',    [MediaController::class, 'destroy'])->name('media.destroy');
+    Route::get ('media/{medium}/download', [MediaController::class, 'download'])->name('media.download');
 
     // ── Settings (admin only) ────────────────────────────────────────────────
     Route::get('settings',               [SettingController::class, 'index'])->name('settings.index');

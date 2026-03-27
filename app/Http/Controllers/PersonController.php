@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Person;
+use App\Models\Media;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,10 +96,12 @@ class PersonController extends Controller
         if ($request->hasFile('headshot')) {
             $validated['headshot'] = $request->file('headshot')
                 ->store('headshots', 'public');
+            Media::trackExisting($request->file('headshot'), $validated['headshot'], auth()->id());
         }
         if ($request->hasFile('cv_file')) {
             $validated['cv_file'] = $request->file('cv_file')
                 ->store('cvs', 'public');
+            Media::trackExisting($request->file('cv_file'), $validated['cv_file'], auth()->id());
         }
 
         // Remove file inputs from validated (already handled)
@@ -149,6 +152,7 @@ class PersonController extends Controller
             }
             $validated['headshot'] = $request->file('headshot')
                 ->store('headshots', 'public');
+            Media::trackExisting($request->file('headshot'), $validated['headshot'], auth()->id());
         } elseif ($request->boolean('headshot_remove')) {
             if ($person->headshot) {
                 Storage::disk('public')->delete($person->headshot);
@@ -165,6 +169,7 @@ class PersonController extends Controller
             }
             $validated['cv_file'] = $request->file('cv_file')
                 ->store('cvs', 'public');
+            Media::trackExisting($request->file('cv_file'), $validated['cv_file'], auth()->id());
         } elseif ($request->boolean('cv_remove')) {
             if ($person->cv_file) {
                 Storage::disk('public')->delete($person->cv_file);

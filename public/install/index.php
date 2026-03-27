@@ -360,6 +360,29 @@ function createTables(PDO $pdo): void
             `batch` INT NOT NULL,
             PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        // media library
+        "CREATE TABLE IF NOT EXISTS `media` (
+            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `filename` VARCHAR(255) NOT NULL,
+            `original_name` VARCHAR(255) NOT NULL,
+            `path` VARCHAR(500) NOT NULL,
+            `disk` VARCHAR(50) NOT NULL DEFAULT 'public',
+            `mime_type` VARCHAR(100) NOT NULL,
+            `size` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            `type` VARCHAR(20) NOT NULL DEFAULT 'file',
+            `uploaded_by` BIGINT UNSIGNED NULL DEFAULT NULL,
+            `alt_text` VARCHAR(255) NULL DEFAULT NULL,
+            `description` TEXT NULL DEFAULT NULL,
+            `created_at` TIMESTAMP NULL DEFAULT NULL,
+            `updated_at` TIMESTAMP NULL DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            KEY `media_type_index` (`type`),
+            KEY `media_mime_type_index` (`mime_type`),
+            KEY `media_uploaded_by_index` (`uploaded_by`),
+            KEY `media_created_at_index` (`created_at`),
+            CONSTRAINT `media_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];
 
     foreach ($sqls as $sql) {
@@ -377,6 +400,7 @@ function createTables(PDO $pdo): void
         '2026_03_03_000000_add_role_to_users_table',
         '2026_03_04_000000_remove_city_birth_year_from_persons_table',
         '2026_03_27_000000_revamp_persons_fields',
+        '2026_03_27_100000_create_media_table',
     ];
     $existing = $pdo->query("SELECT migration FROM `migrations`")->fetchAll(PDO::FETCH_COLUMN);
     $ins = $pdo->prepare("INSERT INTO `migrations` (`migration`, `batch`) VALUES (:m, 1)");

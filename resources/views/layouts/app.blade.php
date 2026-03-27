@@ -396,6 +396,12 @@
         <ul class="sb-nav">
             @if(!auth()->user()->isViewer())
             <li>
+                <a href="{{ route('media.index') }}"
+                   class="{{ request()->routeIs('media.*') ? 'active' : '' }}">
+                    <i class="bi bi-images"></i> Media Library
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('persons.import.form') }}"
                    class="{{ request()->routeIs('persons.import.*') ? 'active' : '' }}">
                     <i class="bi bi-cloud-upload-fill"></i> Import CSV
