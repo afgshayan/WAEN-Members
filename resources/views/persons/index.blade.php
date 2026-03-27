@@ -190,13 +190,11 @@
                             $cols = [
                                 'first_name' => 'First Name',
                                 'last_name'  => 'Last Name',
-                                'city'       => 'City',
                                 'country'    => 'Country',
                             ];
                             if (!auth()->user()->isViewer()) {
                                 $cols = array_merge($cols, [
                                     'email'      => 'Email',
-                                    'phone'      => 'Phone',
                                     'occupation' => 'Occupation',
                                 ]);
                             }
@@ -237,9 +235,9 @@
                             @endif
                             <td class="text-muted" style="font-size:.75rem;">{{ $person->id }}</td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('persons.show', $person) }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
                                     @if($person->headshot)
-                                        <img src="{{ Storage::url($person->headshot) }}"
+                                        <img src="{{ $person->headshot_url }}"
                                              alt="" class="rounded-circle"
                                              style="width:30px; height:30px; object-fit:cover;">
                                     @else
@@ -249,16 +247,12 @@
                                         </div>
                                     @endif
                                     <strong>{{ $person->first_name }}</strong>
-                                </div>
+                                </a>
                             </td>
-                            <td>{{ $person->last_name }}</td>
                             <td>
-                                @if($person->city)
-                                    <span class="badge bg-light text-secondary border"
-                                          style="font-size:.72rem;">{{ $person->city }}</span>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
+                                <a href="{{ route('persons.show', $person) }}" class="text-decoration-none text-dark">
+                                    {{ $person->last_name }}
+                                </a>
                             </td>
                             <td style="font-size:.82rem;">{{ $person->country ?? '—' }}</td>
                             @if(!auth()->user()->isViewer())
@@ -272,7 +266,7 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
-                            <td style="font-size:.82rem;">{{ $person->phone ?? '—' }}</td>
+
                             <td>
                                 @if($person->occupation)
                                     <span class="badge" style="background:#fff7ed; color:#c2410c; font-size:.72rem;">
