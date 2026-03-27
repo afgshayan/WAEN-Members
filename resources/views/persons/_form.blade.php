@@ -445,14 +445,17 @@
     if (cvPickBtn) {
         cvPickBtn.addEventListener('click', function() {
             MediaPicker.open({
-                type: 'document',
+                type: '',
                 title: 'Choose CV / Resume',
                 onSelect: function(media) {
                     cvMediaId.value = media.id;
                     cvRemoveInput.value = '0';
                     cvCurrentName.textContent = media.original_name;
                     // Update icon based on extension
-                    if (media.extension === 'pdf') {
+                    if (media.is_image) {
+                        cvCurrentIcon.className = 'bi bi-file-earmark-image-fill';
+                        cvCurrentIcon.style.color = '#8b5cf6';
+                    } else if (media.extension === 'pdf') {
                         cvCurrentIcon.className = 'bi bi-file-earmark-pdf-fill';
                         cvCurrentIcon.style.color = '#ef4444';
                     } else {
