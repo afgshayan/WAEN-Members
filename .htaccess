@@ -1,5 +1,14 @@
 Options -Indexes
 
+# PHP upload limits (mod_php)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 60M
+    php_value max_file_uploads 25
+    php_value memory_limit 256M
+    php_value max_execution_time 120
+</IfModule>
+
 # Prevent access to sensitive files
 <FilesMatch "\.(env|log|lock|json|md|gitignore|editorconfig|ini|sh|bat)$">
     Require all denied
@@ -23,10 +32,8 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Check if the file exists inside public/ and serve it directly (static assets)
-    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
-    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
-    RewriteRule ^(.*)$ public/$1 [L]
+    # Serve uploaded files from public/storage/ symlink
+    RewriteRule ^storage/(.+)$ public/storage/$1 [L]
 
     # Everything else goes to public/index.php (Laravel front controller)
     RewriteRule ^ public/index.php [L]

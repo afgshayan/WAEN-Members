@@ -1,4 +1,4 @@
 {
-    "version": "1.2.1",
-    "changelog": "Fixed media file upload storage, image URLs, download 404 error, and file tracking in member forms"
+    "version": "1.2.2",
+    "changelog": "Fixed .htaccess rewrite for storage file URLs (broken images/404), increased PHP upload limits"
 }
