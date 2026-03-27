@@ -6,80 +6,70 @@ use App\Models\Person;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PersonController extends Controller
 {
-    /** Allowed sort columns — whitelist prevents SQL injection via ORDER BY */
-    private const SORT_COLUMNS = ['name', 'last_name', 'province', 'country', 'email', 'phone', 'education', 'event_name'];
+    private const SORT_COLUMNS = ['first_name', 'last_name', 'email', 'city', 'country', 'occupation', 'phone'];
 
-    /** Default items per page */
     private const PER_PAGE = 100;
 
     // ---------------------------------------------------------------------------
-    // Index — list, search, sort, paginate
+    // Index
     // ---------------------------------------------------------------------------
 
     public function index(Request $request)
     {
         $request->validate([
-            'search'     => 'nullable|string|max:200',
-            'province'   => 'nullable|string|max:100',
-            'city'       => 'nullable|string|max:100',
-            'country'    => 'nullable|string|max:100',
-            'education'  => 'nullable|string|max:100',
-            'event_name' => 'nullable|string|max:150',
-            'gender'     => 'nullable|string|in:Male,Female,Other',
-            'sort'       => 'nullable|string|in:' . implode(',', self::SORT_COLUMNS),
-            'direction'  => 'nullable|string|in:asc,desc',
-            'per_page'   => 'nullable|integer|in:25,50,100,200,500,1000',
+            'search'    => 'nullable|string|max:200',
+            'country'   => 'nullable|string|max:100',
+            'city'      => 'nullable|string|max:100',
+            'state'     => 'nullable|string|max:100',
+            'sort'      => 'nullable|string|in:' . implode(',', self::SORT_COLUMNS),
+            'direction' => 'nullable|string|in:asc,desc',
+            'per_page'  => 'nullable|integer|in:25,50,100,200,500,1000',
         ]);
 
-        $search     = $request->input('search');
-        $province   = $request->input('province');
-        $country    = $request->input('country');
-        $education  = $request->input('education');
-        $eventName  = $request->input('event_name');
-        $gender     = $request->input('gender');
-        $sort       = in_array($request->input('sort'), self::SORT_COLUMNS)
+        $search    = $request->input('search');
+        $country   = $request->input('country');
+        $city      = $request->input('city');
+        $state     = $request->input('state');
+        $sort      = in_array($request->input('sort'), self::SORT_COLUMNS)
                         ? $request->input('sort')
-                        : 'name';
-        $direction  = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+                        : 'first_name';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
         $defaultPerPage = (int) Setting::get('per_page_default', self::PER_PAGE);
-        $perPage    = (int) $request->input('per_page', $defaultPerPage);
+        $perPage   = (int) $request->input('per_page', $defaultPerPage);
 
         $persons = Person::query()
             ->search($search)
-            ->byProvince($province)
             ->byCountry($country)
-            ->byEducation($education)
-            ->byEvent($eventName)
-            ->byGender($gender)
+            ->byCity($city)
+            ->byState($state)
             ->orderBy($sort, $direction)
             ->paginate($perPage)
             ->withQueryString();
 
-        // Dropdown lists for filters
         $pluck = fn($col) => Person::select($col)
             ->whereNotNull($col)->where($col, '!=', '')
             ->distinct()->orderBy($col)->pluck($col);
 
-        $provinces  = $pluck('province');
-        $countries  = $pluck('country');
-        $educations = $pluck('education');
-        $events     = $pluck('event_name');
+        $countries = $pluck('country');
+        $cities    = $pluck('city');
+        $states    = $pluck('state_province');
 
         $totalCount = Person::count();
 
         return view('persons.index', compact(
-            'persons', 'provinces', 'countries', 'educations', 'events',
-            'search', 'province', 'country', 'education', 'eventName', 'gender',
+            'persons', 'countries', 'cities', 'states',
+            'search', 'country', 'city', 'state',
             'sort', 'direction', 'perPage', 'totalCount'
         ));
     }
 
     // ---------------------------------------------------------------------------
-    // Create form
+    // Create
     // ---------------------------------------------------------------------------
 
     public function create()
@@ -89,7 +79,7 @@ class PersonController extends Controller
     }
 
     // ---------------------------------------------------------------------------
-    // Store — save a new person
+    // Store
     // ---------------------------------------------------------------------------
 
     public function store(Request $request)
@@ -101,14 +91,27 @@ class PersonController extends Controller
             Person::validationMessages()
         );
 
+        // Handle file uploads
+        if ($request->hasFile('headshot')) {
+            $validated['headshot'] = $request->file('headshot')
+                ->store('headshots', 'public');
+        }
+        if ($request->hasFile('cv_file')) {
+            $validated['cv_file'] = $request->file('cv_file')
+                ->store('cvs', 'public');
+        }
+
+        // Remove file inputs from validated (already handled)
+        unset($validated['headshot_remove'], $validated['cv_remove']);
+
         Person::create($validated);
 
         return redirect()->route('persons.index')
-            ->with('success', 'Record created successfully.');
+            ->with('success', 'Member created successfully.');
     }
 
     // ---------------------------------------------------------------------------
-    // Show — view single record
+    // Show
     // ---------------------------------------------------------------------------
 
     public function show(Person $person)
@@ -117,7 +120,7 @@ class PersonController extends Controller
     }
 
     // ---------------------------------------------------------------------------
-    // Edit form
+    // Edit
     // ---------------------------------------------------------------------------
 
     public function edit(Person $person)
@@ -127,7 +130,7 @@ class PersonController extends Controller
     }
 
     // ---------------------------------------------------------------------------
-    // Update — save changes to existing person
+    // Update
     // ---------------------------------------------------------------------------
 
     public function update(Request $request, Person $person)
@@ -139,20 +142,60 @@ class PersonController extends Controller
             Person::validationMessages()
         );
 
+        // Handle headshot upload / removal
+        if ($request->hasFile('headshot')) {
+            if ($person->headshot) {
+                Storage::disk('public')->delete($person->headshot);
+            }
+            $validated['headshot'] = $request->file('headshot')
+                ->store('headshots', 'public');
+        } elseif ($request->boolean('headshot_remove')) {
+            if ($person->headshot) {
+                Storage::disk('public')->delete($person->headshot);
+            }
+            $validated['headshot'] = null;
+        } else {
+            unset($validated['headshot']);
+        }
+
+        // Handle CV upload / removal
+        if ($request->hasFile('cv_file')) {
+            if ($person->cv_file) {
+                Storage::disk('public')->delete($person->cv_file);
+            }
+            $validated['cv_file'] = $request->file('cv_file')
+                ->store('cvs', 'public');
+        } elseif ($request->boolean('cv_remove')) {
+            if ($person->cv_file) {
+                Storage::disk('public')->delete($person->cv_file);
+            }
+            $validated['cv_file'] = null;
+        } else {
+            unset($validated['cv_file']);
+        }
+
         $person->update($validated);
 
         return redirect()->route('persons.index')
-            ->with('success', 'Record updated successfully.');
+            ->with('success', 'Member updated successfully.');
     }
 
     // ---------------------------------------------------------------------------
-    // Destroy — soft-delete
+    // Destroy
     // ---------------------------------------------------------------------------
 
     public function destroy(Person $person)
     {
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Only administrators can delete records.');
+        }
+
+        // Delete uploaded files
+        if ($person->headshot) {
+            Storage::disk('public')->delete($person->headshot);
+        }
+        if ($person->cv_file) {
+            Storage::disk('public')->delete($person->cv_file);
         }
 
         $person->forceDelete();
@@ -176,6 +219,12 @@ class PersonController extends Controller
             'ids.*' => 'required|integer|exists:persons,id',
         ]);
 
+        $persons = Person::whereIn('id', $request->ids)->get();
+        foreach ($persons as $p) {
+            if ($p->headshot) Storage::disk('public')->delete($p->headshot);
+            if ($p->cv_file)  Storage::disk('public')->delete($p->cv_file);
+        }
+
         Person::whereIn('id', $request->ids)->forceDelete();
 
         return redirect()->route('persons.index')
@@ -196,45 +245,52 @@ class PersonController extends Controller
     {
         if (auth()->user()->isViewer()) abort(403, 'Viewers cannot import records.');
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:51200', // max 50MB
+            'csv_file' => 'required|file|mimes:csv,txt|max:51200',
         ]);
 
-        $file    = $request->file('csv_file');
-        $path    = $file->getRealPath();
-        $handle  = fopen($path, 'r');
+        $file   = $request->file('csv_file');
+        $path   = $file->getRealPath();
+        $handle = fopen($path, 'r');
 
         if (!$handle) {
             return back()->withErrors(['csv_file' => 'The file could not be read.']);
         }
 
-        // Detect and skip BOM
-        $bom  = fread($handle, 3);
+        $bom = fread($handle, 3);
         if ($bom !== "\xEF\xBB\xBF") {
             rewind($handle);
         }
 
-        // Read header row
         $header = fgetcsv($handle);
         if (!$header) {
             fclose($handle);
             return back()->withErrors(['csv_file' => 'The file is empty or has an invalid format.']);
         }
 
-        // Normalize header names
         $header = array_map(fn($h) => strtolower(trim(str_replace(' ', '_', $h))), $header);
 
         $columnMap = [
-            'name'       => ['name', 'first_name', 'نام'],
-            'last_name'  => ['last_name', 'lastname', 'نام_خانوادگی', 'نام_خانوادگي'],
-            'province'   => ['province', 'استان'],
-            'country'    => ['country', 'کشور'],
-            'email'      => ['email', 'e-_mail', 'e_mail', 'ایمیل'],
-            'phone'      => ['phone', 'phone_number', 'تلفن', 'شماره_تلفن'],
-            'whatsapp'   => ['whatsapp', 'whatsapp_number', 'واتساپ'],
-            'education'  => ['education', 'تحصیلات', 'تحصيلات'],
-            'gender'     => ['gender', 'جنسیت', 'جنسيت'],
-            'event_name' => ['event_name', 'event', 'رویداد', 'ایونت'],
-            'notes'      => ['notes', 'note', 'توضیحات'],
+            'first_name'           => ['first_name', 'name', 'Ù†Ø§Ù…'],
+            'last_name'            => ['last_name', 'lastname', 'Ù†Ø§Ù…_Ø®Ø§Ù†ÙˆØ§Ø¯Ú¯ÛŒ'],
+            'date_of_birth'        => ['date_of_birth', 'dob', 'birth_date', 'ØªØ§Ø±ÛŒØ®_ØªÙˆÙ„Ø¯'],
+            'occupation'           => ['occupation', 'current_occupation', 'organization', 'Ø´ØºÙ„'],
+            'email'                => ['email', 'email_address', 'Ø§ÛŒÙ…ÛŒÙ„'],
+            'waen_email'           => ['waen_email', 'waen_email_address'],
+            'whatsapp'             => ['whatsapp', 'whatsapp_number', 'ÙˆØ§ØªØ³Ø§Ù¾'],
+            'phone'                => ['phone', 'phone_number', 'ØªÙ„ÙÙ†'],
+            'street_address'       => ['street_address', 'address', 'Ø¢Ø¯Ø±Ø³'],
+            'apartment'            => ['apartment', 'apt', 'suite'],
+            'city'                 => ['city', 'Ø´Ù‡Ø±'],
+            'state_province'       => ['state_province', 'state', 'province', 'Ø§Ø³ØªØ§Ù†'],
+            'zip_code'             => ['zip_code', 'zip', 'postal_code', 'Ú©Ø¯_Ù¾Ø³ØªÛŒ'],
+            'country'              => ['country', 'Ú©Ø´ÙˆØ±'],
+            'facebook'             => ['facebook', 'facebook_url'],
+            'instagram'            => ['instagram', 'instagram_url'],
+            'linkedin'             => ['linkedin', 'linkedin_url'],
+            'twitter'              => ['twitter', 'x', 'twitter_url'],
+            'biography'            => ['biography', 'bio', 'Ø¨ÛŒÙˆÚ¯Ø±Ø§ÙÛŒ'],
+            'areas_of_expertise'   => ['areas_of_expertise', 'expertise', 'ØªØ®ØµØµ'],
+            'proposed_initiatives' => ['proposed_initiatives', 'initiatives', 'Ø§Ø¨ØªÚ©Ø§Ø±Ø§Øª'],
         ];
 
         $colIndex = [];
@@ -248,7 +304,6 @@ class PersonController extends Controller
             }
         }
 
-        // Load all existing emails once for duplicate detection
         $existingEmails = DB::table('persons')
             ->whereNotNull('email')->where('email', '!=', '')
             ->pluck('email')
@@ -256,61 +311,63 @@ class PersonController extends Controller
             ->all();
         $seenEmailsThisImport = [];
 
-        $batch       = [];
-        $batchSize   = 500;
-        $imported    = 0;
-        $skipped     = 0;
-        $errors      = 0;
-        $now         = now();
+        $batch     = [];
+        $batchSize = 500;
+        $imported  = 0;
+        $skipped   = 0;
+        $errors    = 0;
+        $now       = now();
 
         while (($row = fgetcsv($handle)) !== false) {
             $g = fn(string $f, int $max = 100) =>
                 isset($colIndex[$f]) ? substr(trim($row[$colIndex[$f]] ?? ''), 0, $max) : null;
 
-            $genderVal = $g('gender', 20);
-            if ($genderVal !== null && !in_array($genderVal, ['Male', 'Female', 'Other'], true)) {
-                $genderVal = null;
-            }
-
             $record = [
-                'name'       => $g('name') ?? '',
-                'last_name'  => $g('last_name') ?? '',
-                'province'   => $g('province'),
-                'country'    => $g('country'),
-                'email'      => isset($colIndex['email'])
-                    ? substr(strtolower(trim($row[$colIndex['email']] ?? '')), 0, 191)
-                    : null,
-                'phone'      => $g('phone', 30),
-                'whatsapp'   => $g('whatsapp', 30),
-                'education'  => $g('education'),
-                'gender'     => $genderVal,
-                'event_name' => $g('event_name', 150),
-                'notes'      => isset($colIndex['notes'])
-                    ? substr(trim($row[$colIndex['notes']] ?? ''), 0, 5000)
-                    : null,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'first_name'           => $g('first_name') ?? '',
+                'last_name'            => $g('last_name') ?? '',
+                'date_of_birth'        => $g('date_of_birth', 10) ?: null,
+                'occupation'           => $g('occupation', 200),
+                'email'                => isset($colIndex['email'])
+                    ? substr(strtolower(trim($row[$colIndex['email']] ?? '')), 0, 191) : null,
+                'waen_email'           => isset($colIndex['waen_email'])
+                    ? substr(strtolower(trim($row[$colIndex['waen_email']] ?? '')), 0, 191) : null,
+                'whatsapp'             => $g('whatsapp', 30),
+                'phone'                => $g('phone', 30),
+                'street_address'       => $g('street_address', 255),
+                'apartment'            => $g('apartment'),
+                'city'                 => $g('city'),
+                'state_province'       => $g('state_province'),
+                'zip_code'             => $g('zip_code', 20),
+                'country'              => $g('country'),
+                'facebook'             => $g('facebook', 255),
+                'instagram'            => $g('instagram', 255),
+                'linkedin'             => $g('linkedin', 255),
+                'twitter'              => $g('twitter', 255),
+                'biography'            => isset($colIndex['biography'])
+                    ? substr(trim($row[$colIndex['biography']] ?? ''), 0, 5000) : null,
+                'areas_of_expertise'   => isset($colIndex['areas_of_expertise'])
+                    ? substr(trim($row[$colIndex['areas_of_expertise']] ?? ''), 0, 5000) : null,
+                'proposed_initiatives' => isset($colIndex['proposed_initiatives'])
+                    ? substr(trim($row[$colIndex['proposed_initiatives']] ?? ''), 0, 5000) : null,
+                'created_at'           => $now,
+                'updated_at'           => $now,
             ];
 
-            // Require at least name
-            if (empty($record['name'])) {
+            if (empty($record['first_name'])) {
                 $errors++;
                 continue;
             }
 
-            // Sanitize empty strings to null for optional fields
-            foreach (['province', 'country', 'email', 'phone', 'whatsapp', 'education', 'event_name', 'notes'] as $f) {
-                if ($record[$f] === '') {
-                    $record[$f] = null;
-                }
+            // Sanitize empty strings to null
+            foreach (array_keys($record) as $f) {
+                if ($f === 'first_name' || $f === 'last_name' || $f === 'created_at' || $f === 'updated_at') continue;
+                if ($record[$f] === '') $record[$f] = null;
             }
 
-            // Basic email format check
             if ($record['email'] && !filter_var($record['email'], FILTER_VALIDATE_EMAIL)) {
                 $record['email'] = null;
             }
 
-            // Skip if email already exists in DB or was seen earlier in this import
             if (!empty($record['email'])) {
                 if (isset($existingEmails[$record['email']]) || isset($seenEmailsThisImport[$record['email']])) {
                     $skipped++;
@@ -328,7 +385,6 @@ class PersonController extends Controller
             }
         }
 
-        // Insert remaining records
         if (!empty($batch)) {
             DB::table('persons')->insertOrIgnore($batch);
             $imported += count($batch);
@@ -337,18 +393,14 @@ class PersonController extends Controller
         fclose($handle);
 
         $message = "Import completed. {$imported} records imported.";
-        if ($skipped > 0) {
-            $message .= " {$skipped} rows were skipped (duplicate email).";
-        }
-        if ($errors > 0) {
-            $message .= " {$errors} rows were skipped (missing name).";
-        }
+        if ($skipped > 0) $message .= " {$skipped} rows skipped (duplicate email).";
+        if ($errors > 0)  $message .= " {$errors} rows skipped (missing name).";
 
         return redirect()->route('persons.index')->with('success', $message);
     }
 
     // ---------------------------------------------------------------------------
-    // Export — filter form
+    // Export
     // ---------------------------------------------------------------------------
 
     public function exportForm(Request $request)
@@ -357,39 +409,32 @@ class PersonController extends Controller
             ->whereNotNull($col)->where($col, '!=', '')
             ->distinct()->orderBy($col)->pluck($col);
 
-        $provinces  = $pluck('province');
-        $countries  = $pluck('country');
-        $educations = $pluck('education');
-        $events     = $pluck('event_name');
+        $countries = $pluck('country');
+        $cities    = $pluck('city');
+        $states    = $pluck('state_province');
 
-        return view('persons.export', compact(
-            'provinces', 'countries', 'educations', 'events'
-        ));
+        return view('persons.export', compact('countries', 'cities', 'states'));
     }
 
     // ---------------------------------------------------------------------------
-    // Export CSV download (POST)
+    // Export CSV download
     // ---------------------------------------------------------------------------
 
     public function exportCsv(Request $request)
     {
         $request->validate([
-            'search'     => 'nullable|string|max:200',
-            'province'   => 'nullable|string|max:100',
-            'country'    => 'nullable|string|max:100',
-            'education'  => 'nullable|string|max:100',
-            'event_name' => 'nullable|string|max:150',
-            'gender'     => 'nullable|string|in:Male,Female,Other',
+            'search'  => 'nullable|string|max:200',
+            'country' => 'nullable|string|max:100',
+            'city'    => 'nullable|string|max:100',
+            'state'   => 'nullable|string|max:100',
         ]);
 
-        $search     = $request->input('search');
-        $province   = $request->input('province');
-        $country    = $request->input('country');
-        $education  = $request->input('education');
-        $eventName  = $request->input('event_name');
-        $gender     = $request->input('gender');
+        $search  = $request->input('search');
+        $country = $request->input('country');
+        $city    = $request->input('city');
+        $state   = $request->input('state');
 
-        $filename = 'members_portal_export_' . date('Ymd_His') . '.csv';
+        $filename = 'waen_members_export_' . date('Ymd_His') . '.csv';
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -397,41 +442,33 @@ class PersonController extends Controller
             'Cache-Control'       => 'no-cache, no-store, must-revalidate',
         ];
 
-        $callback = function () use ($search, $province, $country, $education, $eventName, $gender) {
+        $callback = function () use ($search, $country, $city, $state) {
             $handle = fopen('php://output', 'w');
-
-            // UTF-8 BOM for Excel compatibility
             fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, [
-                'ID', 'Name', 'Last Name', 'Province', 'Country',
-                'Email', 'Phone', 'WhatsApp', 'Education', 'Gender',
-                'Event Name', 'Notes',
+                'ID', 'First Name', 'Last Name', 'Date of Birth', 'Occupation',
+                'Email', 'WAEN Email', 'WhatsApp', 'Phone',
+                'Street Address', 'Apartment', 'City', 'State/Province', 'ZIP Code', 'Country',
+                'Facebook', 'Instagram', 'LinkedIn', 'X (Twitter)',
+                'Biography', 'Areas of Expertise', 'Proposed Initiatives',
             ]);
 
             Person::query()
                 ->search($search)
-                ->byProvince($province)
                 ->byCountry($country)
-                ->byEducation($education)
-                ->byEvent($eventName)
-                ->byGender($gender)
+                ->byCity($city)
+                ->byState($state)
                 ->orderBy('id')
                 ->chunk(1000, function ($persons) use ($handle) {
                     foreach ($persons as $p) {
                         fputcsv($handle, [
-                            $p->id,
-                            $p->name,
-                            $p->last_name,
-                            $p->province,
-                            $p->country,
-                            $p->email,
-                            $p->phone,
-                            $p->whatsapp,
-                            $p->education,
-                            $p->gender,
-                            $p->event_name,
-                            $p->notes,
+                            $p->id, $p->first_name, $p->last_name,
+                            $p->date_of_birth?->format('Y-m-d'), $p->occupation,
+                            $p->email, $p->waen_email, $p->whatsapp, $p->phone,
+                            $p->street_address, $p->apartment, $p->city, $p->state_province, $p->zip_code, $p->country,
+                            $p->facebook, $p->instagram, $p->linkedin, $p->twitter,
+                            $p->biography, $p->areas_of_expertise, $p->proposed_initiatives,
                         ]);
                     }
                 });
@@ -443,28 +480,26 @@ class PersonController extends Controller
     }
 
     // ---------------------------------------------------------------------------
-    // Sample CSV download
+    // Sample CSV
     // ---------------------------------------------------------------------------
 
     public function sampleCsv()
     {
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="members_portal_sample_import.csv"',
+            'Content-Disposition' => 'attachment; filename="waen_members_sample_import.csv"',
             'Cache-Control'       => 'no-cache',
         ];
 
         $rows = [
-            ['name', 'last_name', 'province', 'country', 'email', 'phone', 'whatsapp', 'education', 'gender', 'event_name', 'notes'],
-            ['Ahmad',  'Rahimi',  'Kabul',    'Afghanistan', 'ahmad@example.com',  '+93-700-123456', '+93-700-123456', "Bachelor's Degree", 'Male',   'Annual Conference', ''],
-            ['Fatima', 'Noori',   'Herat',    'Afghanistan', 'fatima@example.com', '+93-799-654321', '',               "Master's Degree",   'Female', 'Annual Conference', ''],
-            ['Ali',    'Ahmadi',  'Kandahar', 'Afghanistan', 'ali@example.com',    '0799123456',     '',               'High School Diploma','Male',   'Workshop 2025',     ''],
-            ['Sara',   'Karimi',  'Balkh',    'Afghanistan', '',                   '',               '',               'Associate Degree',   'Female', '',                  ''],
+            ['first_name', 'last_name', 'date_of_birth', 'occupation', 'email', 'waen_email', 'whatsapp', 'phone', 'street_address', 'apartment', 'city', 'state_province', 'zip_code', 'country', 'facebook', 'instagram', 'linkedin', 'twitter', 'biography', 'areas_of_expertise', 'proposed_initiatives'],
+            ['Ahmad', 'Rahimi', '1990-05-15', 'Software Engineer at TechCorp', 'ahmad@example.com', 'ahmad@waen.org', '+93700123456', '+1234567890', '123 Main St', 'Apt 4B', 'Kabul', 'Kabul', '1001', 'Afghanistan', 'https://facebook.com/ahmad', 'https://instagram.com/ahmad', 'https://linkedin.com/in/ahmad', 'https://x.com/ahmad', 'Experienced engineer...', 'Machine Learning, Data Science', 'AI for Education'],
+            ['Sara', 'Karimi', '1988-11-22', 'Professor at University', 'sara@example.com', '', '+93799654321', '', '456 Oak Ave', '', 'Herat', 'Herat', '2001', 'Afghanistan', '', '', 'https://linkedin.com/in/sara', '', 'Academic researcher...', 'Public Health, Policy', 'Health Education Programs'],
         ];
 
         $callback = function () use ($rows) {
             $h = fopen('php://output', 'w');
-            fwrite($h, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+            fwrite($h, "\xEF\xBB\xBF");
             foreach ($rows as $row) {
                 fputcsv($h, $row);
             }

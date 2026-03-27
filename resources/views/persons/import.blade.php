@@ -34,15 +34,17 @@
                         <ul class="mb-0 mt-1 ps-3" style="font-size:.84rem;">
                             <li>File format: <code>.csv</code> or <code>.txt</code></li>
                             <li>First row must be the header. Only required column:
-                                <code>name</code>
+                                <code>first_name</code>
                             </li>
                             <li>Optional columns:
-                                <code>province</code>, <code>country</code>,
-                                <code>email</code>, <code>phone</code>, <code>whatsapp</code>,
-                                <code>education</code>, <code>gender</code>,
-                                <code>event_name</code>, <code>notes</code>
+                                <code>last_name</code>, <code>date_of_birth</code>, <code>occupation</code>,
+                                <code>email</code>, <code>waen_email</code>, <code>whatsapp</code>, <code>phone</code>,
+                                <code>street_address</code>, <code>apartment</code>, <code>city</code>,
+                                <code>state_province</code>, <code>zip_code</code>, <code>country</code>,
+                                <code>facebook</code>, <code>instagram</code>, <code>linkedin</code>, <code>twitter</code>,
+                                <code>biography</code>, <code>areas_of_expertise</code>, <code>proposed_initiatives</code>
                             </li>
-                            <li><code>gender</code> accepted values: <code>Male</code>, <code>Female</code>, <code>Other</code></li>
+                            <li><code>date_of_birth</code> format: <code>YYYY-MM-DD</code></li>
                             <li>Encoding: <strong>UTF-8</strong> (with or without BOM)</li>
                             <li>Maximum file size: <strong>50 MB</strong></li>
                             <li>Duplicate email addresses are automatically skipped.</li>
@@ -89,13 +91,13 @@
                 <span>Sample CSV Template</span>
             </div>
             <div class="card-body p-4">
-                <pre class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:.8rem; color:#374151; border:1px solid #e5e7eb; overflow-x:auto;">name,last_name,province,country,email,phone,whatsapp,education,gender,event_name,notes
-Ahmad,Rahimi,Kabul,Afghanistan,ahmad@example.com,+93-700-123456,+93-700-123456,Bachelor's Degree,Male,Annual Conference,
-Fatima,Noori,Herat,Afghanistan,fatima@example.com,+93-799-654321,,,Female,,</pre>
+                <pre class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:.8rem; color:#374151; border:1px solid #e5e7eb; overflow-x:auto;">first_name,last_name,date_of_birth,occupation,email,waen_email,whatsapp,phone,street_address,apartment,city,state_province,zip_code,country,facebook,instagram,linkedin,twitter,biography,areas_of_expertise,proposed_initiatives
+Ahmad,Rahimi,1990-05-15,Software Engineer at TechCorp,ahmad@example.com,ahmad@waen.org,+93700123456,+1234567890,123 Main St,Apt 4B,Kabul,Kabul,1001,Afghanistan,,,,,Experienced engineer...,Machine Learning,AI for Education
+Sara,Karimi,1988-11-22,Professor at University,sara@example.com,,+93799654321,,456 Oak Ave,,Herat,Herat,2001,Afghanistan,,,,,,Public Health,Health Education</pre>
                 <small class="text-muted" style="font-size:.78rem;">
                     <i class="bi bi-lightbulb me-1 text-warning"></i>
-                    All columns except <em>name</em> are optional.
-                    Rows without a <em>name</em> are skipped.
+                    All columns except <em>first_name</em> are optional.
+                    Rows without a <em>first_name</em> are skipped.
                 </small>
             </div>
         </div>

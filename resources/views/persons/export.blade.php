@@ -45,18 +45,31 @@
                                 <i class="bi bi-search me-1 text-muted"></i>Search
                             </label>
                             <input type="text" name="search" class="form-control"
-                                   placeholder="Name, email, phone, event …"
+                                   placeholder="Name, email, phone, occupation …"
                                    value="{{ old('search') }}" maxlength="200">
                         </div>
 
-                        {{-- Province --}}
+                        {{-- City --}}
                         <div class="col-6 col-md-3">
-                            <label class="form-label fw-semibold" style="font-size:.875rem;">Province</label>
-                            <select name="province" class="form-select">
-                                <option value="">All Provinces</option>
-                                @foreach($provinces as $prov)
-                                    <option value="{{ $prov }}" {{ old('province') === $prov ? 'selected' : '' }}>
-                                        {{ $prov }}
+                            <label class="form-label fw-semibold" style="font-size:.875rem;">City</label>
+                            <select name="city" class="form-select">
+                                <option value="">All Cities</option>
+                                @foreach($cities as $c)
+                                    <option value="{{ $c }}" {{ old('city') === $c ? 'selected' : '' }}>
+                                        {{ $c }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- State/Province --}}
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-semibold" style="font-size:.875rem;">State/Province</label>
+                            <select name="state" class="form-select">
+                                <option value="">All States</option>
+                                @foreach($states as $s)
+                                    <option value="{{ $s }}" {{ old('state') === $s ? 'selected' : '' }}>
+                                        {{ $s }}
                                     </option>
                                 @endforeach
                             </select>
@@ -70,45 +83,6 @@
                                 @foreach($countries as $co)
                                     <option value="{{ $co }}" {{ old('country') === $co ? 'selected' : '' }}>
                                         {{ $co }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Event --}}
-                        <div class="col-12 col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:.875rem;">Event Name</label>
-                            <select name="event_name" class="form-select">
-                                <option value="">All Events</option>
-                                @foreach($events as $ev)
-                                    <option value="{{ $ev }}" {{ old('event_name') === $ev ? 'selected' : '' }}>
-                                        {{ $ev }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Education --}}
-                        <div class="col-6 col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:.875rem;">Education</label>
-                            <select name="education" class="form-select">
-                                <option value="">All Levels</option>
-                                @foreach($educations as $edu)
-                                    <option value="{{ $edu }}" {{ old('education') === $edu ? 'selected' : '' }}>
-                                        {{ $edu }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Gender --}}
-                        <div class="col-6 col-md-3">
-                            <label class="form-label fw-semibold" style="font-size:.875rem;">Gender</label>
-                            <select name="gender" class="form-select">
-                                <option value="">All</option>
-                                @foreach(['Male','Female','Other'] as $g)
-                                    <option value="{{ $g }}" {{ old('gender') === $g ? 'selected' : '' }}>
-                                        {{ $g }}
                                     </option>
                                 @endforeach
                             </select>

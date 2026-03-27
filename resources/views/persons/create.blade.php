@@ -24,7 +24,7 @@
                 <span>New Member Details</span>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="{{ route('persons.store') }}" novalidate autocomplete="on">
+                <form method="POST" action="{{ route('persons.store') }}" novalidate autocomplete="on" enctype="multipart/form-data">
                     @csrf
 
                     @include('persons._form')

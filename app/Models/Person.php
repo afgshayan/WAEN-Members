@@ -12,41 +12,70 @@ class Person extends Model
 
     protected $table = 'persons';
 
-    /**
-     * Mass-assignable fields — only these can be set via create()/update().
-     */
     protected $fillable = [
-        'name',
+        'first_name',
         'last_name',
-        'province',
-        'country',
+        'date_of_birth',
+        'occupation',
         'email',
-        'phone',
+        'waen_email',
         'whatsapp',
-        'education',
-        'gender',
-        'event_name',
-        'notes',
+        'phone',
+        'street_address',
+        'apartment',
+        'city',
+        'state_province',
+        'zip_code',
+        'country',
+        'facebook',
+        'instagram',
+        'linkedin',
+        'twitter',
+        'biography',
+        'headshot',
+        'cv_file',
+        'areas_of_expertise',
+        'proposed_initiatives',
     ];
 
-    /**
-     * Fields that are never exposed in serialization.
-     */
     protected $hidden = [];
 
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'date_of_birth' => 'date',
+        'created_at'    => 'datetime',
+        'updated_at'    => 'datetime',
+        'deleted_at'    => 'datetime',
     ];
+
+    // ---------------------------------------------------------------------------
+    // Accessors
+    // ---------------------------------------------------------------------------
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function getHeadshotUrlAttribute(): ?string
+    {
+        if (!$this->headshot) {
+            return null;
+        }
+        return asset('storage/' . $this->headshot);
+    }
+
+    public function getCvUrlAttribute(): ?string
+    {
+        if (!$this->cv_file) {
+            return null;
+        }
+        return asset('storage/' . $this->cv_file);
+    }
 
     // ---------------------------------------------------------------------------
     // Scopes
     // ---------------------------------------------------------------------------
 
-    /**
-     * Filter across multiple columns with a single search term.
-     */
     public function scopeSearch($query, ?string $term)
     {
         if ($term === null || $term === '') {
@@ -56,125 +85,109 @@ class Person extends Model
         $like = '%' . $term . '%';
 
         return $query->where(function ($q) use ($like) {
-            $q->where('name',        'LIKE', $like)
-              ->orWhere('last_name',  'LIKE', $like)
-              ->orWhere('province',   'LIKE', $like)
-              ->orWhere('country',    'LIKE', $like)
-              ->orWhere('email',      'LIKE', $like)
-              ->orWhere('phone',      'LIKE', $like)
-              ->orWhere('whatsapp',   'LIKE', $like)
-              ->orWhere('education',  'LIKE', $like)
-              ->orWhere('event_name', 'LIKE', $like)
-              ->orWhere('notes',      'LIKE', $like);
+            $q->where('first_name',    'LIKE', $like)
+              ->orWhere('last_name',    'LIKE', $like)
+              ->orWhere('email',        'LIKE', $like)
+              ->orWhere('waen_email',   'LIKE', $like)
+              ->orWhere('phone',        'LIKE', $like)
+              ->orWhere('whatsapp',     'LIKE', $like)
+              ->orWhere('city',         'LIKE', $like)
+              ->orWhere('state_province','LIKE', $like)
+              ->orWhere('country',      'LIKE', $like)
+              ->orWhere('occupation',   'LIKE', $like)
+              ->orWhere('biography',    'LIKE', $like)
+              ->orWhere('areas_of_expertise', 'LIKE', $like);
         });
     }
 
-    /**
-     * Filter by province.
-     */
-    public function scopeByProvince($query, ?string $province)
-    {
-        if ($province === null || $province === '') {
-            return $query;
-        }
-
-        return $query->where('province', $province);
-    }
-
-    /**
-     * Filter by education level.
-     */
-    public function scopeByEducation($query, ?string $education)
-    {
-        if ($education === null || $education === '') {
-            return $query;
-        }
-
-        return $query->where('education', $education);
-    }
-
-    /**
-     * Filter by country.
-     */
     public function scopeByCountry($query, ?string $country)
     {
         if ($country === null || $country === '') {
             return $query;
         }
-
         return $query->where('country', $country);
     }
 
-    /**
-     * Filter by event name.
-     */
-    public function scopeByEvent($query, ?string $event)
+    public function scopeByCity($query, ?string $city)
     {
-        if ($event === null || $event === '') {
+        if ($city === null || $city === '') {
             return $query;
         }
-
-        return $query->where('event_name', $event);
+        return $query->where('city', $city);
     }
 
-    /**
-     * Filter by gender.
-     */
-    public function scopeByGender($query, ?string $gender)
+    public function scopeByState($query, ?string $state)
     {
-        if ($gender === null || $gender === '') {
+        if ($state === null || $state === '') {
             return $query;
         }
-
-        return $query->where('gender', $gender);
+        return $query->where('state_province', $state);
     }
 
     // ---------------------------------------------------------------------------
-    // Validation rules (used in FormRequest classes)
+    // Validation
     // ---------------------------------------------------------------------------
 
     public static function validationRules(bool $isUpdate = false, ?int $id = null): array
     {
-        $emailRule = 'nullable|email:rfc,dns|max:191|unique:persons,email';
+        $emailRule     = 'nullable|email:rfc,dns|max:191|unique:persons,email';
+        $waenEmailRule = 'nullable|email:rfc,dns|max:191|unique:persons,waen_email';
 
         if ($isUpdate && $id) {
-            $emailRule .= ',' . $id;
+            $emailRule     .= ',' . $id;
+            $waenEmailRule .= ',' . $id;
         }
 
         return [
-            'name'       => 'required|string|max:100',
-            'last_name'  => 'required|string|max:100',
-            'province'   => 'nullable|string|max:100',
-            'country'    => 'nullable|string|max:100',
-            'email'      => $emailRule,
-            'phone'      => 'nullable|string|max:30|regex:/^[\d\s\+\-\(\)]+$/',
-            'whatsapp'   => 'nullable|string|max:30|regex:/^[\d\s\+\-\(\)]+$/',
-            'education'  => 'nullable|string|max:100',
-            'gender'     => 'nullable|string|in:Male,Female,Other',
-            'event_name' => 'nullable|string|max:150',
-            'notes'      => 'nullable|string|max:5000',
+            'first_name'           => 'required|string|max:100',
+            'last_name'            => 'required|string|max:100',
+            'date_of_birth'        => 'nullable|date|before:today',
+            'occupation'           => 'nullable|string|max:200',
+            'email'                => $emailRule,
+            'waen_email'           => $waenEmailRule,
+            'whatsapp'             => 'nullable|string|max:30|regex:/^[\d\s\+\-\(\)]+$/',
+            'phone'                => 'nullable|string|max:30|regex:/^[\d\s\+\-\(\)]+$/',
+            'street_address'       => 'nullable|string|max:255',
+            'apartment'            => 'nullable|string|max:100',
+            'city'                 => 'nullable|string|max:100',
+            'state_province'       => 'nullable|string|max:100',
+            'zip_code'             => 'nullable|string|max:20',
+            'country'              => 'nullable|string|max:100',
+            'facebook'             => 'nullable|url|max:255',
+            'instagram'            => 'nullable|url|max:255',
+            'linkedin'             => 'nullable|url|max:255',
+            'twitter'              => 'nullable|url|max:255',
+            'biography'            => 'nullable|string|max:5000',
+            'headshot'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'cv_file'              => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'areas_of_expertise'   => 'nullable|string|max:5000',
+            'proposed_initiatives' => 'nullable|string|max:5000',
         ];
     }
 
     public static function validationMessages(): array
     {
         return [
-            'name.required'       => 'First name is required.',
-            'name.max'            => 'First name must not exceed 100 characters.',
-            'last_name.required'  => 'Last name is required.',
-            'last_name.max'       => 'Last name must not exceed 100 characters.',
-            'province.max'        => 'Province must not exceed 100 characters.',
-            'email.email'         => 'Please provide a valid email address.',
-            'email.unique'        => 'This email address is already registered.',
-            'email.max'           => 'Email must not exceed 191 characters.',
-            'phone.max'           => 'Phone number must not exceed 30 characters.',
-            'phone.regex'         => 'Phone number may only contain digits, spaces, +, - and ().',
-            'education.max'       => 'Education must not exceed 100 characters.',
-            'whatsapp.max'        => 'WhatsApp number must not exceed 30 characters.',
-            'whatsapp.regex'      => 'WhatsApp number may only contain digits, spaces, +, - and ().',
-            'gender.in'           => 'Gender must be Male, Female, or Other.',
-            'event_name.max'      => 'Event name must not exceed 150 characters.',
-            'notes.max'           => 'Notes must not exceed 5000 characters.',
+            'first_name.required'    => 'First name is required.',
+            'first_name.max'         => 'First name must not exceed 100 characters.',
+            'last_name.required'     => 'Last name is required.',
+            'last_name.max'          => 'Last name must not exceed 100 characters.',
+            'date_of_birth.date'     => 'Please provide a valid date.',
+            'date_of_birth.before'   => 'Date of birth must be in the past.',
+            'email.email'            => 'Please provide a valid email address.',
+            'email.unique'           => 'This email address is already registered.',
+            'waen_email.email'       => 'Please provide a valid WAEN email address.',
+            'waen_email.unique'      => 'This WAEN email is already registered.',
+            'phone.regex'            => 'Phone number may only contain digits, spaces, +, - and ().',
+            'whatsapp.regex'         => 'WhatsApp number may only contain digits, spaces, +, - and ().',
+            'headshot.image'         => 'Headshot must be an image (jpg, png, webp).',
+            'headshot.max'           => 'Headshot must not exceed 5 MB.',
+            'cv_file.mimes'          => 'CV must be a PDF, DOC, or DOCX file.',
+            'cv_file.max'            => 'CV must not exceed 10 MB.',
+            'facebook.url'           => 'Facebook must be a valid URL.',
+            'instagram.url'          => 'Instagram must be a valid URL.',
+            'linkedin.url'           => 'LinkedIn must be a valid URL.',
+            'twitter.url'            => 'X (Twitter) must be a valid URL.',
         ];
     }
 }

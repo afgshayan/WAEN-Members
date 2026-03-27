@@ -44,21 +44,11 @@
     <div class="col-6 col-xl">
         <div class="stat-card c-purple">
             <div class="stat-label">
-                Provinces/City
+                Cities
                 <i class="bi bi-geo-alt-fill"></i>
             </div>
-            <div class="stat-val">{{ $provinces->count() }}</div>
-            <div class="stat-sub">Unique provinces / cities</div>
-        </div>
-    </div>
-    <div class="col-6 col-xl">
-        <div class="stat-card c-teal">
-            <div class="stat-label">
-                Events
-                <i class="bi bi-calendar-event"></i>
-            </div>
-            <div class="stat-val">{{ $events->count() }}</div>
-            <div class="stat-sub">Unique event names</div>
+            <div class="stat-val">{{ $cities->count() }}</div>
+            <div class="stat-sub">Unique cities</div>
         </div>
     </div>
 </div>
@@ -83,13 +73,24 @@
                     </div>
                 </div>
 
-                <!--  Province -->
+                <!--  City -->
                 <div class="col-6 col-md-3 col-lg-2">
-                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Province</label>
-                    <select name="province" class="form-select">
-                        <option value="">All Provinces</option>
-                        @foreach($provinces as $prov)
-                            <option value="{{ $prov }}" {{ $province === $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">City</label>
+                    <select name="city" class="form-select">
+                        <option value="">All Cities</option>
+                        @foreach($cities as $c)
+                            <option value="{{ $c }}" {{ ($city ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!--  State/Province -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">State/Province</label>
+                    <select name="state" class="form-select">
+                        <option value="">All States</option>
+                        @foreach($states as $s)
+                            <option value="{{ $s }}" {{ ($state ?? '') === $s ? 'selected' : '' }}>{{ $s }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -101,39 +102,6 @@
                         <option value="">All Countries</option>
                         @foreach($countries as $co)
                             <option value="{{ $co }}" {{ ($country ?? '') === $co ? 'selected' : '' }}>{{ $co }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!--  Education -->
-                <div class="col-6 col-md-3 col-lg-2">
-                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Education</label>
-                    <select name="education" class="form-select">
-                        <option value="">All Levels</option>
-                        @foreach($educations as $edu)
-                            <option value="{{ $edu }}" {{ $education === $edu ? 'selected' : '' }}>{{ $edu }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!--  Event -->
-                <div class="col-6 col-md-3 col-lg-3">
-                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Event</label>
-                    <select name="event_name" class="form-select">
-                        <option value="">All Events</option>
-                        @foreach($events as $ev)
-                            <option value="{{ $ev }}" {{ ($eventName ?? '') === $ev ? 'selected' : '' }}>{{ $ev }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!--  Gender -->
-                <div class="col-6 col-md-2 col-lg-2">
-                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Gender</label>
-                    <select name="gender" class="form-select">
-                        <option value="">All</option>
-                        @foreach(['Male','Female','Other'] as $g)
-                            <option value="{{ $g }}" {{ ($gender ?? '') === $g ? 'selected' : '' }}>{{ $g }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -220,16 +188,16 @@
 
                         @php
                             $cols = [
-                                'name'       => 'First Name',
+                                'first_name' => 'First Name',
                                 'last_name'  => 'Last Name',
-                                'province'   => 'Province',
+                                'city'       => 'City',
                                 'country'    => 'Country',
                             ];
                             if (!auth()->user()->isViewer()) {
                                 $cols = array_merge($cols, [
                                     'email'      => 'Email',
                                     'phone'      => 'Phone',
-                                    'event_name' => 'Event',
+                                    'occupation' => 'Occupation',
                                 ]);
                             }
                         @endphp
@@ -268,12 +236,26 @@
                             </td>
                             @endif
                             <td class="text-muted" style="font-size:.75rem;">{{ $person->id }}</td>
-                            <td><strong>{{ $person->name }}</strong></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if($person->headshot)
+                                        <img src="{{ Storage::url($person->headshot) }}"
+                                             alt="" class="rounded-circle"
+                                             style="width:30px; height:30px; object-fit:cover;">
+                                    @else
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width:30px; height:30px; background:#e5e7eb; color:#6b7280; font-size:.7rem; font-weight:600;">
+                                            {{ strtoupper(substr($person->first_name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <strong>{{ $person->first_name }}</strong>
+                                </div>
+                            </td>
                             <td>{{ $person->last_name }}</td>
                             <td>
-                                @if($person->province)
+                                @if($person->city)
                                     <span class="badge bg-light text-secondary border"
-                                          style="font-size:.72rem;">{{ $person->province }}</span>
+                                          style="font-size:.72rem;">{{ $person->city }}</span>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
@@ -292,9 +274,9 @@
                             </td>
                             <td style="font-size:.82rem;">{{ $person->phone ?? '—' }}</td>
                             <td>
-                                @if($person->event_name)
+                                @if($person->occupation)
                                     <span class="badge" style="background:#fff7ed; color:#c2410c; font-size:.72rem;">
-                                        {{ $person->event_name }}
+                                        {{ Str::limit($person->occupation, 30) }}
                                     </span>
                                 @else
                                     <span class="text-muted">—</span>
@@ -316,7 +298,7 @@
                                 <button type="button"
                                         class="btn btn-act btn-outline-danger del-btn"
                                         data-id="{{ $person->id }}"
-                                        data-name="{{ $person->name }} {{ $person->last_name }}"
+                                        data-name="{{ $person->first_name }} {{ $person->last_name }}"
                                         title="Delete">
                                     <i class="bi bi-trash3"></i>
                                 </button>
@@ -400,18 +382,22 @@
         bulkBtn.classList.toggle('d-none', n === 0);
     }
 
-    selAll.addEventListener('change', function () {
-        cbs.forEach(function (c) { c.checked = selAll.checked; });
-        refresh();
-    });
+    if (selAll) {
+        selAll.addEventListener('change', function () {
+            cbs.forEach(function (c) { c.checked = selAll.checked; });
+            refresh();
+        });
+    }
     cbs.forEach(function (c) { c.addEventListener('change', refresh); });
 
-    bulkBtn.addEventListener('click', function () {
-        var n = document.querySelectorAll('.row-cb:checked').length;
-        if (confirm('Delete ' + n + ' selected records? This cannot be undone.')) {
-            document.getElementById('bulkForm').submit();
-        }
-    });
+    if (bulkBtn) {
+        bulkBtn.addEventListener('click', function () {
+            var n = document.querySelectorAll('.row-cb:checked').length;
+            if (confirm('Delete ' + n + ' selected records? This cannot be undone.')) {
+                document.getElementById('bulkForm').submit();
+            }
+        });
+    }
 })();
 </script>
 @endpush

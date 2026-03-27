@@ -2,14 +2,14 @@
 
 @section('title', 'Edit Member')
 @section('page-title', 'Edit Member')
-@section('page-sub', 'Update the details for ' . $person->name . ' ' . $person->last_name)
+@section('page-sub', 'Update the details for ' . $person->first_name . ' ' . $person->last_name)
 @section('breadcrumb')
     <li class="breadcrumb-item">
         <a href="{{ route('persons.index') }}" class="text-decoration-none text-muted">Members</a>
     </li>
     <li class="breadcrumb-item">
         <a href="{{ route('persons.show', $person) }}" class="text-decoration-none text-muted">
-            {{ $person->name }} {{ $person->last_name }}
+            {{ $person->first_name }} {{ $person->last_name }}
         </a>
     </li>
     <li class="breadcrumb-item active">Edit</li>
@@ -27,12 +27,12 @@
                                 color:#fff; font-size:.85rem; flex-shrink:0;">
                         <i class="bi bi-pencil-fill"></i>
                     </div>
-                    <span>Editing: {{ $person->name }} {{ $person->last_name }}</span>
+                    <span>Editing: {{ $person->first_name }} {{ $person->last_name }}</span>
                 </div>
                 <span class="badge bg-light text-secondary border" style="font-size:.72rem;">#{{ $person->id }}</span>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="{{ route('persons.update', $person) }}" novalidate autocomplete="on">
+                <form method="POST" action="{{ route('persons.update', $person) }}" novalidate autocomplete="on" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
