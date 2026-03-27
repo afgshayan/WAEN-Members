@@ -202,12 +202,10 @@ class MediaController extends Controller
     {
         if (auth()->user()->isViewer()) abort(403);
 
-        $path = Storage::disk($medium->disk)->path($medium->path);
-
-        if (!file_exists($path)) {
+        if (!Storage::disk($medium->disk)->exists($medium->path)) {
             abort(404, 'File not found.');
         }
 
-        return response()->download($path, $medium->original_name);
+        return Storage::disk($medium->disk)->download($medium->path, $medium->original_name);
     }
 }

@@ -1,4 +1,4 @@
 {
-    "version": "1.2.0",
-    "changelog": "Added WordPress-style Media Library with drag-drop upload, grid/list view, detail panel, bulk operations, and file management"
+    "version": "1.2.1",
+    "changelog": "Fixed media file upload storage, image URLs, download 404 error, and file tracking in member forms"
 }

@@ -39,7 +39,7 @@ class Media extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->path);
+        return url('storage/' . $this->path);
     }
 
     public function getHumanSizeAttribute(): string
@@ -100,9 +100,11 @@ class Media extends Model
 
     public static function storeUpload(\Illuminate\Http\UploadedFile $file, ?int $userId = null): self
     {
-        $mime     = $file->getMimeType();
-        $type     = self::determineType($mime);
-        $folder   = match ($type) {
+        $mime         = $file->getMimeType();
+        $type         = self::determineType($mime);
+        $originalName = $file->getClientOriginalName();
+        $size         = $file->getSize();
+        $folder       = match ($type) {
             'image'    => 'media/images',
             'document' => 'media/documents',
             default    => 'media/files',
@@ -110,13 +112,17 @@ class Media extends Model
 
         $storedPath = $file->store($folder, 'public');
 
+        if (!$storedPath) {
+            throw new \RuntimeException('Failed to store uploaded file: ' . $originalName);
+        }
+
         return self::create([
             'filename'      => basename($storedPath),
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => $originalName,
             'path'          => $storedPath,
             'disk'          => 'public',
             'mime_type'     => $mime,
-            'size'          => $file->getSize(),
+            'size'          => $size,
             'type'          => $type,
             'uploaded_by'   => $userId,
         ]);
@@ -125,16 +131,16 @@ class Media extends Model
     /**
      * Track a file that was already stored (e.g. headshot/CV from PersonController).
      */
-    public static function trackExisting(\Illuminate\Http\UploadedFile $file, string $storedPath, ?int $userId = null): self
+    public static function trackExisting(string $originalName, string $mimeType, int $size, string $storedPath, ?int $userId = null): self
     {
         return self::create([
             'filename'      => basename($storedPath),
-            'original_name' => $file->getClientOriginalName(),
+            'original_name' => $originalName,
             'path'          => $storedPath,
             'disk'          => 'public',
-            'mime_type'     => $file->getMimeType(),
-            'size'          => $file->getSize(),
-            'type'          => self::determineType($file->getMimeType()),
+            'mime_type'     => $mimeType,
+            'size'          => $size,
+            'type'          => self::determineType($mimeType),
             'uploaded_by'   => $userId,
         ]);
     }

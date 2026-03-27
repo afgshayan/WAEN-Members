@@ -94,14 +94,20 @@ class PersonController extends Controller
 
         // Handle file uploads
         if ($request->hasFile('headshot')) {
-            $validated['headshot'] = $request->file('headshot')
-                ->store('headshots', 'public');
-            Media::trackExisting($request->file('headshot'), $validated['headshot'], auth()->id());
+            $file = $request->file('headshot');
+            $origName = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $size = $file->getSize();
+            $validated['headshot'] = $file->store('headshots', 'public');
+            Media::trackExisting($origName, $mime, $size, $validated['headshot'], auth()->id());
         }
         if ($request->hasFile('cv_file')) {
-            $validated['cv_file'] = $request->file('cv_file')
-                ->store('cvs', 'public');
-            Media::trackExisting($request->file('cv_file'), $validated['cv_file'], auth()->id());
+            $file = $request->file('cv_file');
+            $origName = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $size = $file->getSize();
+            $validated['cv_file'] = $file->store('cvs', 'public');
+            Media::trackExisting($origName, $mime, $size, $validated['cv_file'], auth()->id());
         }
 
         // Remove file inputs from validated (already handled)
@@ -150,9 +156,12 @@ class PersonController extends Controller
             if ($person->headshot) {
                 Storage::disk('public')->delete($person->headshot);
             }
-            $validated['headshot'] = $request->file('headshot')
-                ->store('headshots', 'public');
-            Media::trackExisting($request->file('headshot'), $validated['headshot'], auth()->id());
+            $file = $request->file('headshot');
+            $origName = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $size = $file->getSize();
+            $validated['headshot'] = $file->store('headshots', 'public');
+            Media::trackExisting($origName, $mime, $size, $validated['headshot'], auth()->id());
         } elseif ($request->boolean('headshot_remove')) {
             if ($person->headshot) {
                 Storage::disk('public')->delete($person->headshot);
@@ -167,9 +176,12 @@ class PersonController extends Controller
             if ($person->cv_file) {
                 Storage::disk('public')->delete($person->cv_file);
             }
-            $validated['cv_file'] = $request->file('cv_file')
-                ->store('cvs', 'public');
-            Media::trackExisting($request->file('cv_file'), $validated['cv_file'], auth()->id());
+            $file = $request->file('cv_file');
+            $origName = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $size = $file->getSize();
+            $validated['cv_file'] = $file->store('cvs', 'public');
+            Media::trackExisting($origName, $mime, $size, $validated['cv_file'], auth()->id());
         } elseif ($request->boolean('cv_remove')) {
             if ($person->cv_file) {
                 Storage::disk('public')->delete($person->cv_file);
