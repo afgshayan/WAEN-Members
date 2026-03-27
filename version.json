@@ -1,4 +1,4 @@
 {
-    "version": "1.3.2",
-    "changelog": "CV picker now shows all media types (images + documents) so users can select image-based CVs"
+    "version": "1.3.3",
+    "changelog": "Fixed profile address layout - street full width row, city/state/zip/country in second row. Areas of expertise and proposed initiatives now full width."
 }

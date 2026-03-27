@@ -274,7 +274,7 @@
                 {{-- â”€â”€ Address â”€â”€ --}}
                 <div class="section-title"><i class="bi bi-geo-alt me-1"></i> Address</div>
                 <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12">
                         <div class="info-card">
                             <div class="info-label">Street Address</div>
                             <div class="info-value">
@@ -285,25 +285,25 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">City</div>
                             <div class="info-value">{{ $person->city ?: 'â€”' }}</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">State/Province</div>
                             <div class="info-value">{{ $person->state_province ?: 'â€”' }}</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-1">
+                    <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">ZIP</div>
                             <div class="info-value">{{ $person->zip_code ?: 'â€”' }}</div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-1">
+                    <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">Country</div>
                             <div class="info-value">{{ $person->country ?: 'â€”' }}</div>
@@ -324,7 +324,7 @@
                 <div class="section-title"><i class="bi bi-briefcase me-1"></i> Professional Details</div>
                 <div class="row g-3 mb-4">
                     @if($person->areas_of_expertise)
-                    <div class="col-12 col-md-6">
+                    <div class="col-12">
                         <div class="info-card">
                             <div class="info-label">Areas of Expertise</div>
                             <div class="info-value" style="white-space:pre-wrap; font-weight:500;">{{ $person->areas_of_expertise }}</div>
@@ -332,7 +332,7 @@
                     </div>
                     @endif
                     @if($person->proposed_initiatives)
-                    <div class="col-12 col-md-6">
+                    <div class="col-12">
                         <div class="info-card">
                             <div class="info-label">Proposed Initiatives or Programs</div>
                             <div class="info-value" style="white-space:pre-wrap; font-weight:500;">{{ $person->proposed_initiatives }}</div>
