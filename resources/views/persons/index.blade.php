@@ -221,7 +221,7 @@
                             </th>
                         @endforeach
 
-                        <th style="width:110px;" class="text-center">Actions</th>
+                        <th style="width:120px;" class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -278,6 +278,7 @@
                             </td>
                             @endif
                             <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1 flex-nowrap">
                                 <a href="{{ route('persons.show', $person) }}"
                                    class="btn btn-act btn-outline-info" title="View">
                                     <i class="bi bi-eye"></i>
@@ -297,6 +298,7 @@
                                     <i class="bi bi-trash3"></i>
                                 </button>
                                 @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

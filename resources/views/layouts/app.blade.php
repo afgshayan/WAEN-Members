@@ -279,9 +279,9 @@
         }
         .btn-primary:hover { background: linear-gradient(135deg, var(--brand-dark), #c2410c); color: #fff; }
         .btn-act {
-            width: 30px; height: 30px; padding: 0;
+            width: 26px; height: 26px; padding: 0;
             display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 7px; font-size: .78rem;
+            border-radius: 6px; font-size: .72rem;
         }
 
         /* ─── FORM CONTROLS ─────────────────────────── */
