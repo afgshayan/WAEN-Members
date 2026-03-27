@@ -38,6 +38,28 @@ class MediaController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        // JSON response for media picker modal
+        if ($request->expectsJson()) {
+            return response()->json([
+                'data' => $media->map(fn($m) => [
+                    'id'            => $m->id,
+                    'original_name' => $m->original_name,
+                    'filename'      => $m->filename,
+                    'url'           => $m->url,
+                    'mime_type'     => $m->mime_type,
+                    'size'          => $m->size,
+                    'human_size'    => $m->human_size,
+                    'type'          => $m->type,
+                    'is_image'      => $m->is_image,
+                    'extension'     => $m->extension,
+                    'created_at'    => $m->created_at->format('M d, Y'),
+                ]),
+                'current_page' => $media->currentPage(),
+                'last_page'    => $media->lastPage(),
+                'total'        => $media->total(),
+            ]);
+        }
+
         $stats = [
             'total'     => Media::count(),
             'images'    => Media::where('type', 'image')->count(),

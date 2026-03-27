@@ -92,26 +92,21 @@ class PersonController extends Controller
             Person::validationMessages()
         );
 
-        // Handle file uploads
-        if ($request->hasFile('headshot')) {
-            $file = $request->file('headshot');
-            $origName = $file->getClientOriginalName();
-            $mime = $file->getMimeType();
-            $size = $file->getSize();
-            $validated['headshot'] = $file->store('headshots', 'public');
-            Media::trackExisting($origName, $mime, $size, $validated['headshot'], auth()->id());
-        }
-        if ($request->hasFile('cv_file')) {
-            $file = $request->file('cv_file');
-            $origName = $file->getClientOriginalName();
-            $mime = $file->getMimeType();
-            $size = $file->getSize();
-            $validated['cv_file'] = $file->store('cvs', 'public');
-            Media::trackExisting($origName, $mime, $size, $validated['cv_file'], auth()->id());
+        // Handle headshot from media picker
+        if ($request->filled('headshot_media_id')) {
+            $media = Media::findOrFail($validated['headshot_media_id']);
+            $validated['headshot'] = $media->path;
         }
 
-        // Remove file inputs from validated (already handled)
-        unset($validated['headshot_remove'], $validated['cv_remove']);
+        // Handle CV from media picker
+        if ($request->filled('cv_media_id')) {
+            $media = Media::findOrFail($validated['cv_media_id']);
+            $validated['cv_file'] = $media->path;
+        }
+
+        // Remove picker inputs from validated data
+        unset($validated['headshot_media_id'], $validated['headshot_remove'],
+              $validated['cv_media_id'], $validated['cv_remove']);
 
         Person::create($validated);
 
@@ -151,45 +146,29 @@ class PersonController extends Controller
             Person::validationMessages()
         );
 
-        // Handle headshot upload / removal
-        if ($request->hasFile('headshot')) {
-            if ($person->headshot) {
-                Storage::disk('public')->delete($person->headshot);
-            }
-            $file = $request->file('headshot');
-            $origName = $file->getClientOriginalName();
-            $mime = $file->getMimeType();
-            $size = $file->getSize();
-            $validated['headshot'] = $file->store('headshots', 'public');
-            Media::trackExisting($origName, $mime, $size, $validated['headshot'], auth()->id());
-        } elseif ($request->boolean('headshot_remove')) {
-            if ($person->headshot) {
-                Storage::disk('public')->delete($person->headshot);
-            }
+        // Handle headshot from media picker / removal
+        if ($request->filled('headshot_media_id')) {
+            $media = Media::findOrFail($validated['headshot_media_id']);
+            $validated['headshot'] = $media->path;
+        } elseif ($request->input('headshot_remove') === '1') {
             $validated['headshot'] = null;
         } else {
             unset($validated['headshot']);
         }
 
-        // Handle CV upload / removal
-        if ($request->hasFile('cv_file')) {
-            if ($person->cv_file) {
-                Storage::disk('public')->delete($person->cv_file);
-            }
-            $file = $request->file('cv_file');
-            $origName = $file->getClientOriginalName();
-            $mime = $file->getMimeType();
-            $size = $file->getSize();
-            $validated['cv_file'] = $file->store('cvs', 'public');
-            Media::trackExisting($origName, $mime, $size, $validated['cv_file'], auth()->id());
-        } elseif ($request->boolean('cv_remove')) {
-            if ($person->cv_file) {
-                Storage::disk('public')->delete($person->cv_file);
-            }
+        // Handle CV from media picker / removal
+        if ($request->filled('cv_media_id')) {
+            $media = Media::findOrFail($validated['cv_media_id']);
+            $validated['cv_file'] = $media->path;
+        } elseif ($request->input('cv_remove') === '1') {
             $validated['cv_file'] = null;
         } else {
             unset($validated['cv_file']);
         }
+
+        // Remove picker inputs from validated data
+        unset($validated['headshot_media_id'], $validated['headshot_remove'],
+              $validated['cv_media_id'], $validated['cv_remove']);
 
         $person->update($validated);
 

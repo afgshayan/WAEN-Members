@@ -80,35 +80,38 @@
 
     {{-- Headshot --}}
     <div class="col-12 col-md-6">
-        <label for="headshot" class="form-label fw-semibold" style="font-size:.875rem;">
+        <label class="form-label fw-semibold" style="font-size:.875rem;">
             <i class="bi bi-camera me-1"></i>Headshot Photo
         </label>
-        @if(isset($person) && $person->headshot)
-            <div class="mb-2 d-flex align-items-center gap-2">
-                <img src="{{ $person->headshot_url }}" alt="Current headshot"
-                     style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb;">
-                <label class="form-check-label small text-muted">
-                    <input type="checkbox" name="headshot_remove" value="1" class="form-check-input me-1">
-                    Remove current photo
-                </label>
-            </div>
-        @endif
-        <input type="file" name="headshot" id="headshot"
-               class="form-control @error('headshot') is-invalid @enderror"
-               accept="image/jpeg,image/png,image/webp">
-        <small class="text-muted">JPG, PNG or WebP. Max 5 MB.</small>
-        @error('headshot') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        <div id="headshot-preview" class="mt-2 d-none">
-            <div class="d-flex align-items-center gap-2">
-                <img id="headshot-preview-img" src="" alt="Preview"
-                     style="width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6;">
-                <div style="min-width:0;">
-                    <div id="headshot-preview-name" class="fw-semibold text-truncate" style="font-size:.8rem; max-width:200px;"></div>
-                    <div id="headshot-preview-size" class="text-muted" style="font-size:.72rem;"></div>
-                </div>
-                <i class="bi bi-check-circle-fill text-success" style="font-size:1.1rem;"></i>
-            </div>
+        <input type="hidden" name="headshot_media_id" id="headshot_media_id" value="">
+        <input type="hidden" name="headshot_remove" id="headshot_remove_input" value="0">
+
+        {{-- Current / Selected preview --}}
+        <div id="headshot-current"
+             class="mb-2 position-relative d-inline-block{{ (isset($person) && $person->headshot) ? '' : ' d-none' }}"
+             style="max-width:80px;">
+            <img id="headshot-current-img"
+                 src="{{ (isset($person) && $person->headshot) ? $person->headshot_url : '' }}"
+                 alt="Headshot"
+                 style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid #e5e7eb; display:block;">
+            {{-- Trash overlay --}}
+            <button type="button" class="btn btn-sm btn-danger position-absolute"
+                    id="headshot-remove-btn"
+                    style="top:-4px; right:-4px; width:24px; height:24px; border-radius:50%; padding:0;
+                           display:flex; align-items:center; justify-content:center; font-size:.7rem;
+                           box-shadow:0 1px 4px rgba(0,0,0,.2);"
+                    title="Remove photo">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
         </div>
+
+        <div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="headshot-pick-btn">
+                <i class="bi bi-image me-1"></i>{{ (isset($person) && $person->headshot) ? 'Change Image' : 'Choose Image' }}
+            </button>
+        </div>
+        <small class="text-muted">Select from Media Library or upload new. JPG, PNG, WebP. Max 5 MB.</small>
+        @error('headshot_media_id') <div class="text-danger" style="font-size:.82rem;">{{ $message }}</div> @enderror
     </div>
 
     {{-- ── Contact Information ── --}}
@@ -325,38 +328,47 @@
 
     {{-- CV --}}
     <div class="col-12 col-md-6">
-        <label for="cv_file" class="form-label fw-semibold" style="font-size:.875rem;">
+        <label class="form-label fw-semibold" style="font-size:.875rem;">
             <i class="bi bi-file-earmark-pdf me-1"></i>CV / Resume
         </label>
-        @if(isset($person) && $person->cv_file)
-            <div class="mb-2 d-flex align-items-center gap-2">
-                <a href="{{ $person->cv_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-download me-1"></i>Download current CV
-                </a>
-                <label class="form-check-label small text-muted">
-                    <input type="checkbox" name="cv_remove" value="1" class="form-check-input me-1">
-                    Remove
-                </label>
+        <input type="hidden" name="cv_media_id" id="cv_media_id" value="">
+        <input type="hidden" name="cv_remove" id="cv_remove_input" value="0">
+
+        {{-- Current / Selected preview --}}
+        <div id="cv-current"
+             class="mb-2 d-flex align-items-center gap-2{{ (isset($person) && $person->cv_file) ? '' : ' d-none' }}">
+            <div style="width:44px; height:44px; background:#f1f5f9; border-radius:10px;
+                        display:flex; align-items:center; justify-content:center; position:relative;">
+                <i class="bi bi-file-earmark-pdf-fill" style="font-size:1.4rem; color:#ef4444;" id="cv-current-icon"></i>
+                {{-- Trash overlay --}}
+                <button type="button" class="btn btn-sm btn-danger position-absolute"
+                        id="cv-remove-btn"
+                        style="top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; padding:0;
+                               display:flex; align-items:center; justify-content:center; font-size:.6rem;
+                               box-shadow:0 1px 4px rgba(0,0,0,.2);"
+                        title="Remove CV">
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
             </div>
-        @endif
-        <input type="file" name="cv_file" id="cv_file"
-               class="form-control @error('cv_file') is-invalid @enderror"
-               accept=".pdf,.doc,.docx">
-        <small class="text-muted">PDF, DOC or DOCX. Max 10 MB.</small>
-        @error('cv_file') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        <div id="cv-preview" class="mt-2 d-none">
-            <div class="d-flex align-items-center gap-2">
-                <div style="width:44px; height:44px; background:#f1f5f9; border-radius:10px;
-                            display:flex; align-items:center; justify-content:center;">
-                    <i class="bi bi-file-earmark-pdf-fill" style="font-size:1.4rem; color:#ef4444;" id="cv-preview-icon"></i>
+            <div style="min-width:0;">
+                <div id="cv-current-name" class="fw-semibold text-truncate" style="font-size:.8rem; max-width:200px;">
+                    {{ isset($person) && $person->cv_file ? basename($person->cv_file) : '' }}
                 </div>
-                <div style="min-width:0;">
-                    <div id="cv-preview-name" class="fw-semibold text-truncate" style="font-size:.8rem; max-width:200px;"></div>
-                    <div id="cv-preview-size" class="text-muted" style="font-size:.72rem;"></div>
-                </div>
-                <i class="bi bi-check-circle-fill text-success" style="font-size:1.1rem;"></i>
+                @if(isset($person) && $person->cv_file)
+                    <a href="{{ $person->cv_url }}" target="_blank" class="text-primary" style="font-size:.72rem;">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                @endif
             </div>
         </div>
+
+        <div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="cv-pick-btn">
+                <i class="bi bi-file-earmark-plus me-1"></i>{{ (isset($person) && $person->cv_file) ? 'Change File' : 'Choose File' }}
+            </button>
+        </div>
+        <small class="text-muted">Select from Media Library or upload new. PDF, DOC, DOCX. Max 10 MB.</small>
+        @error('cv_media_id') <div class="text-danger" style="font-size:.82rem;">{{ $message }}</div> @enderror
     </div>
 
     {{-- Areas of Expertise --}}
@@ -381,58 +393,85 @@
 
 </div>
 
+{{-- Include media picker modal --}}
+@include('media._picker_modal')
+
 <script>
 (function() {
-    function formatSize(bytes) {
-        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
-        if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return bytes + ' B';
-    }
+    'use strict';
 
-    var headshot = document.getElementById('headshot');
-    if (headshot) {
-        headshot.addEventListener('change', function() {
-            var preview = document.getElementById('headshot-preview');
-            var img = document.getElementById('headshot-preview-img');
-            var nameEl = document.getElementById('headshot-preview-name');
-            var sizeEl = document.getElementById('headshot-preview-size');
-            if (this.files && this.files[0]) {
-                var file = this.files[0];
-                var reader = new FileReader();
-                reader.onload = function(e) { img.src = e.target.result; };
-                reader.readAsDataURL(file);
-                nameEl.textContent = file.name;
-                sizeEl.textContent = formatSize(file.size);
-                preview.classList.remove('d-none');
-            } else {
-                preview.classList.add('d-none');
-            }
+    // ── Headshot picker ──
+    var headshotPickBtn = document.getElementById('headshot-pick-btn');
+    var headshotRemoveBtn = document.getElementById('headshot-remove-btn');
+    var headshotMediaId = document.getElementById('headshot_media_id');
+    var headshotRemoveInput = document.getElementById('headshot_remove_input');
+    var headshotCurrent = document.getElementById('headshot-current');
+    var headshotImg = document.getElementById('headshot-current-img');
+
+    if (headshotPickBtn) {
+        headshotPickBtn.addEventListener('click', function() {
+            MediaPicker.open({
+                type: 'image',
+                title: 'Choose Headshot Photo',
+                onSelect: function(media) {
+                    headshotMediaId.value = media.id;
+                    headshotRemoveInput.value = '0';
+                    headshotImg.src = media.url;
+                    headshotCurrent.classList.remove('d-none');
+                    headshotPickBtn.innerHTML = '<i class="bi bi-image me-1"></i>Change Image';
+                }
+            });
         });
     }
 
-    var cvFile = document.getElementById('cv_file');
-    if (cvFile) {
-        cvFile.addEventListener('change', function() {
-            var preview = document.getElementById('cv-preview');
-            var nameEl = document.getElementById('cv-preview-name');
-            var sizeEl = document.getElementById('cv-preview-size');
-            var iconEl = document.getElementById('cv-preview-icon');
-            if (this.files && this.files[0]) {
-                var file = this.files[0];
-                nameEl.textContent = file.name;
-                sizeEl.textContent = formatSize(file.size);
-                var ext = file.name.split('.').pop().toLowerCase();
-                if (ext === 'pdf') {
-                    iconEl.className = 'bi bi-file-earmark-pdf-fill';
-                    iconEl.style.color = '#ef4444';
-                } else {
-                    iconEl.className = 'bi bi-file-earmark-word-fill';
-                    iconEl.style.color = '#2563eb';
+    if (headshotRemoveBtn) {
+        headshotRemoveBtn.addEventListener('click', function() {
+            headshotMediaId.value = '';
+            headshotRemoveInput.value = '1';
+            headshotCurrent.classList.add('d-none');
+            headshotPickBtn.innerHTML = '<i class="bi bi-image me-1"></i>Choose Image';
+        });
+    }
+
+    // ── CV picker ──
+    var cvPickBtn = document.getElementById('cv-pick-btn');
+    var cvRemoveBtn = document.getElementById('cv-remove-btn');
+    var cvMediaId = document.getElementById('cv_media_id');
+    var cvRemoveInput = document.getElementById('cv_remove_input');
+    var cvCurrent = document.getElementById('cv-current');
+    var cvCurrentName = document.getElementById('cv-current-name');
+    var cvCurrentIcon = document.getElementById('cv-current-icon');
+
+    if (cvPickBtn) {
+        cvPickBtn.addEventListener('click', function() {
+            MediaPicker.open({
+                type: 'document',
+                title: 'Choose CV / Resume',
+                onSelect: function(media) {
+                    cvMediaId.value = media.id;
+                    cvRemoveInput.value = '0';
+                    cvCurrentName.textContent = media.original_name;
+                    // Update icon based on extension
+                    if (media.extension === 'pdf') {
+                        cvCurrentIcon.className = 'bi bi-file-earmark-pdf-fill';
+                        cvCurrentIcon.style.color = '#ef4444';
+                    } else {
+                        cvCurrentIcon.className = 'bi bi-file-earmark-word-fill';
+                        cvCurrentIcon.style.color = '#2563eb';
+                    }
+                    cvCurrent.classList.remove('d-none');
+                    cvPickBtn.innerHTML = '<i class="bi bi-file-earmark-plus me-1"></i>Change File';
                 }
-                preview.classList.remove('d-none');
-            } else {
-                preview.classList.add('d-none');
-            }
+            });
+        });
+    }
+
+    if (cvRemoveBtn) {
+        cvRemoveBtn.addEventListener('click', function() {
+            cvMediaId.value = '';
+            cvRemoveInput.value = '1';
+            cvCurrent.classList.add('d-none');
+            cvPickBtn.innerHTML = '<i class="bi bi-file-earmark-plus me-1"></i>Choose File';
         });
     }
 })();
